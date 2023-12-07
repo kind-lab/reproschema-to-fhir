@@ -1,0 +1,3 @@
+[submodule "reproschema-library"]
+	path = reproschema-library
+	url = https://github.com/ReproNim/reproschema-library/

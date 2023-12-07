@@ -1,0 +1,15 @@
+name: reproschema_to_fhir
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - numpy>=1.19.4
+  - python=3.9
+  - pytest>=4.3.1
+  - jupyter>=1.0.0
+  - nltk>=3.5
+  - tqdm>=4.31.1
+  - pip>=20.3.3
+  - pip:
+    - reproschema>=0.6.2
+    - fhir.resources>=v6.2.2
