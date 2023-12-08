@@ -12,13 +12,9 @@ from fhir.resources.codesystem import CodeSystem
 from .config import Config
 
 # TODO: migrate these globals to the config
-CODESYSTEM_URI = os.getenv('CODESYSTEM_URI')
-VALUESET_URI = os.getenv('VALUESET_URI')
-QUESTIONNAIRE_URI = os.getenv('QUESTIONNAIRE_URI')
 
-def generate_code_system(
-    options_json, id_str: str
-) -> dict:
+
+def generate_code_system(options_json, id_str: str) -> dict:
     """
     Helper function to generate a FHIR CodeSystem resource from a reproschema options json.
     """
@@ -42,14 +38,14 @@ def generate_code_system(
     codeSystem[f"status"] = f"active"
     codeSystem[f"date"] = f"2023-11-20T11:33:15-05:00"
     codeSystem[f"publisher"] = f"KinD Lab"
-    codeSystem[f"contact"] = [
-        {
-            f"name": f"KinD Lab",
-            f"telecom": [
-                {f"system": f"url", f"value": f"http://fhir.kindlab.sickkids.ca"}
-            ],
-        }
-    ]
+    codeSystem[f"contact"] = [{
+        f"name":
+        f"KinD Lab",
+        f"telecom": [{
+            f"system": f"url",
+            f"value": f"http://fhir.kindlab.sickkids.ca"
+        }],
+    }]
 
     codeSystem[f"description"] = id_str
     codeSystem[f"caseSensitive"] = True
@@ -67,12 +63,8 @@ def generate_code_system(
         else:
             choice = j[f"schema:value"]
 
-        if (
-            choice
-            and not isinstance(choice, int)
-            and f"en" in choice
-            and isinstance(choice, dict)
-        ):
+        if (choice and not isinstance(choice, int) and f"en" in choice
+                and isinstance(choice, dict)):
             choice = choice["en"]
 
         choice = str(choice)
@@ -101,21 +93,24 @@ def generate_value_set(id_str: str) -> dict:
     valueset[f"status"] = f"active"
     valueset[f"date"] = f"2023-11-20"
     valueset[f"publisher"] = f"KinD Lab"
-    valueset[f"contact"] = [
-        {
-            f"name": f"KinD Lab",
-            f"telecom": [
-                {f"system": f"url", f"value": f"http://fhir.kindlab.sickkids.ca"}
-            ],
-        }
-    ]
+    valueset[f"contact"] = [{
+        f"name":
+        f"KinD Lab",
+        f"telecom": [{
+            f"system": f"url",
+            f"value": f"http://fhir.kindlab.sickkids.ca"
+        }],
+    }]
 
     valueset[f"description"] = id
     valueset[f"compose"] = dict()
 
-    valueset[f"compose"][f"include"] = [{f"system": f"{CODESYSTEM_URI}{id_str}"}]
+    valueset[f"compose"][f"include"] = [{
+        f"system": f"{CODESYSTEM_URI}{id_str}"
+    }]
 
     return valueset
+
 
 class Generator(ABC):
     """
@@ -127,6 +122,7 @@ class Generator(ABC):
         # TODO: keep track of code systems created so we only ever create one per option
         self.code_system: dict = {}
         self.value_set: dict = {}
+
 
 class QuestionnaireGenerator(Generator):
     """
@@ -169,11 +165,15 @@ class QuestionnaireGenerator(Generator):
         jsonld file.
         """
         fhir_questionnaire = dict()
-
+        
         # reference to the main schema file
-        schema_name = [name for name in reproschema_content.keys() if name.endswith("_schema")][0]
+        schema_name = [
+            name for name in list(reproschema_content.keys())
+            if name.endswith("_schema")
+        ][0]
         reproschema_schema = reproschema_content[schema_name]
-        reproschema_id = reproschema_schema["@id"].replace("_", "")
+       
+        reproschema_id = (reproschema_schema["@id"]).replace("_", "")
 
         # create fhir questionnaire
         fhir_questionnaire[f"resourceType"] = f"Questionnaire"
@@ -182,26 +182,30 @@ class QuestionnaireGenerator(Generator):
                 f"https://voicecollab.ai/fhir/StructureDefinition/vbai-questionnaire"
             ]
         }
+        print(self.config.get_questionnaire())
         fhir_questionnaire[f"id"] = reproschema_id
-        fhir_questionnaire[f"url"] = QUESTIONNAIRE_URI + reproschema_schema[f"@id"].replace("_", "")
+        fhir_questionnaire[
+            f"url"] = self.config.QUESTIONNAIRE_URI + reproschema_schema[f"@id"].replace(
+                "_", "")
         fhir_questionnaire[f"title"] = reproschema_content[f"@id"]
 
         fhir_questionnaire[f"text"] = {
             f"status": f"generated",
-            f"div": f'<div xmlns="http://www.w3.org/1999/xhtml">Placeholder</div>',
+            f"div":
+            f'<div xmlns="http://www.w3.org/1999/xhtml">Placeholder</div>',
         }
         fhir_questionnaire[f"version"] = f"1.4.0"
         fhir_questionnaire[f"status"] = f"active"
         fhir_questionnaire[f"date"] = f"2023-11-20T11:33:15-05:00"
         fhir_questionnaire[f"publisher"] = f"KinD Lab"
-        fhir_questionnaire[f"contact"] = [
-            {
-                f"name": f"KinD Lab",
-                f"telecom": [
-                    {f"system": f"url", f"value": f"http://fhir.kindlab.sickkids.ca"}
-                ],
-            }
-        ]
+        fhir_questionnaire[f"contact"] = [{
+            f"name":
+            f"KinD Lab",
+            f"telecom": [{
+                f"system": f"url",
+                f"value": f"http://fhir.kindlab.sickkids.ca"
+            }],
+        }]
 
         fhir_questionnaire[f"item"] = []
 
@@ -219,13 +223,9 @@ class QuestionnaireGenerator(Generator):
         group[f"type"] = f"group"
 
         # create a pointer to the reproschema_items jsons
-        reproschema_items = OrderedDict(
-            [
-                (i, reproschema_content[i])
-                for i in reproschema_content.keys()
-                if i.startswith("items/")
-            ]
-        )
+        reproschema_items = OrderedDict([(i, reproschema_content[i])
+                                         for i in reproschema_content.keys()
+                                         if i.startswith("items/")])
 
         items = []
         for item_path, item_json in reproschema_items.items():
@@ -246,9 +246,8 @@ class QuestionnaireGenerator(Generator):
 
             # TODO: turn into a get_i18n function, which automatically
             # uses a self.language arg to pull the relevant language from the dict
-            if f"question" in item_json and isinstance(
-                item_json[f"question"], dict
-            ):
+            if f"question" in item_json and isinstance(item_json[f"question"],
+                                                       dict):
                 curr_item[f"text"] = str(item_json[f"question"][f"en"])
             else:
                 curr_item[f"text"] = str(item_json[f"prefLabel"])
@@ -272,7 +271,8 @@ class QuestionnaireGenerator(Generator):
                 # once that is done, the argument signature can be reproschema_items only
                 if isinstance(item_json[f"responseOptions"], str):
                     # resolve the path relative to the items folder to load in the dict
-                    options_path = Path(item_path).parent / item_json[f'responseOptions']
+                    options_path = Path(
+                        item_path).parent / item_json[f'responseOptions']
                     options_path = options_path.resolve()
                     options_json = reproschema_content[str(options_path)]
 
@@ -283,7 +283,8 @@ class QuestionnaireGenerator(Generator):
                 elif isinstance(item_json["responseOptions", dict]):
                     if f"choices" in item_json[f"responseOptions"]:
                         options_json = item_json[f"responseOptions"]
-                        code_system = generate_code_system(options_json, id_str)
+                        code_system = generate_code_system(
+                            options_json, id_str)
                         if id_str not in self.code_system:
                             self.code_system[id_str] = code_system
 

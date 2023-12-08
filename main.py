@@ -7,17 +7,20 @@ Currently supports reproschema to fhir json in en.
 import argparse
 from collections import OrderedDict
 import json
+import os
 from pathlib import Path
+
 
 from reproschema.jsonldutils import load_file
 
-from reproschema_to_fhir.config import Config
-from reproschema_to_fhir.fhir import QuestionnaireGenerator
+from src.reproschema_to_fhir.config import Config
+from src.reproschema_to_fhir.fhir import QuestionnaireGenerator
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # TODO: change from hard-coded to command line argument
-    reproschema_folder = Path.cwd() / "reproschema-library/activities/GAD7"
+    reproschema_folder = Path.cwd() / "b2ai-redcap2rs/activities/questionnaire_across_all_cohorts_gad7_anxiety"
     args = parser.parse_args()
 
     # load each file recursively within the folder into its own key in the reproschema_content dict
@@ -27,15 +30,19 @@ if __name__ == '__main__':
             # get the full path to the file *after* the base reproschema_folder path
             # since files can be referenced by relative paths, we need to keep track of relative location
             filename = str(file.relative_to(reproschema_folder))
-            reproschema_content[filename] = load_file(file)
+            with open(f"{reproschema_folder}/{filename}") as f:
+                #print(str(f))
+                reproschema_content[filename] = json.loads(str(f.read()))
+    #print(reproschema_content)
 
     # TODO: validate reproschema
-    if reproschema_content["schema"] != "1.0.0-rc1":
-        raise ValueError('Unable to work with reproschema versions other than 1.0.0-rc1')
+    # if reproschema_content["schema"] != "0.0.1":
+    #     raise ValueError('Unable to work with reproschema versions other than 0.0.1')
 
     # convert to fhir
     config = Config()
-    questionnaire_generator = QuestionnaireGenerator(config=config)
+    print(config.get_questionnaire())
+    questionnaire_generator = QuestionnaireGenerator(config)
     fhir_questionnaire = questionnaire_generator.convert_to_fhir(reproschema_content)
 
 
@@ -50,4 +57,3 @@ if __name__ == '__main__':
 
     with open(f"{file_name}-codesystems.json", "w+") as f:
         f.write(json.dumps(questionnaire_generator.code_system))
-
