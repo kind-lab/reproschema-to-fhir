@@ -1,3 +1,6 @@
 [submodule "reproschema-library"]
 	path = reproschema-library
 	url = https://github.com/ReproNim/reproschema-library/
+[submodule "b2ai-redcap2rs"]
+	path = b2ai-redcap2rs
+	url = https://github.com/satra/b2ai-redcap2rs.git
