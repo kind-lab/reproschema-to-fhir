@@ -19,10 +19,11 @@ from src.reproschema_to_fhir.fhir import QuestionnaireGenerator
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    # TODO: change from hard-coded to command line argument
-    reproschema_folder = Path.cwd() / "b2ai-redcap2rs/activities/questionnaire_across_all_cohorts_gad7_anxiety"
+    parser.add_argument("reproschema_questionnaire")
+    #reproschema_folder = Path.cwd() / "b2ai-redcap2rs/activities/questionnaire_across_all_cohorts_gad7_anxiety"
     args = parser.parse_args()
-
+    reproschema_folder = Path(str(args.reproschema_questionnaire))
+  
     # load each file recursively within the folder into its own key in the reproschema_content dict
     reproschema_content = OrderedDict()
     for file in reproschema_folder.glob("**/*"):
