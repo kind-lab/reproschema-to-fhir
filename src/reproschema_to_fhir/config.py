@@ -9,3 +9,11 @@ class Config:
 
     def get_questionnaire(self):
         return self.QUESTIONNAIRE_URI
+
+
+    def get_valueset(self):
+        return self.VALUESET_URI
+
+
+    def get_codesystem(self):
+        return self.CODESYSTEM_URI

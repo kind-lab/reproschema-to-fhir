@@ -41,11 +41,10 @@ if __name__ == '__main__':
 
     # convert to fhir
     config = Config()
-    print(config.get_questionnaire())
+    
     questionnaire_generator = QuestionnaireGenerator(config)
     fhir_questionnaire = questionnaire_generator.convert_to_fhir(reproschema_content)
-
-
+   
     # get filename from the reproschema_folder name provided
     file_name = reproschema_folder.parts[-1]
     with open(f"{file_name}.json", "w+") as f:
@@ -53,7 +52,7 @@ if __name__ == '__main__':
 
     # write out valuesets and codesystems which have been updated in the generator object
     with open(f"{file_name}-valuesets.json", "w+") as f:
-        f.write(json.dumps(questionnaire_generator.value_set))
+        f.write(json.dumps(questionnaire_generator.get_value_set()))
 
     with open(f"{file_name}-codesystems.json", "w+") as f:
-        f.write(json.dumps(questionnaire_generator.code_system))
+        f.write(json.dumps(questionnaire_generator.get_code_system()))
