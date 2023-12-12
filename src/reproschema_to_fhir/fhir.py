@@ -11,19 +11,12 @@ from fhir.resources.codesystem import CodeSystem
 
 from .config import Config
 
-# TODO: migrate these globals to the config
-
-
 def generate_code_system(options_json, id_str: str, config) -> dict:
     """
     Helper function to generate a FHIR CodeSystem resource from a reproschema options json.
     """
     # default headers for codesystem
     codeSystem = dict()
-    # id = questionnaire + linkId
-    # id = id.replace("_", "-")
-    # id = id.lower()
-
     codeSystem[f"resourceType"] = f"CodeSystem"
     codeSystem[f"id"] = id_str
     codeSystem[f"text"] = {
@@ -56,7 +49,9 @@ def generate_code_system(options_json, id_str: str, config) -> dict:
     options = []
     # we wish to retrieve each option stored in the reproschema json list. We do this by parsing the list
     # of jsons and append then contents to an outlined codesystem
+    count = 1
     for j in options_json[f"choices"]:
+        
         codeSystem_option = dict()
         if f"schema:name" in j and j[f"schema:name"] != "":
             choice = j[f"schema:name"]
@@ -68,12 +63,15 @@ def generate_code_system(options_json, id_str: str, config) -> dict:
             choice = choice["en"]
 
         choice = str(choice)
-        codeSystem_option[f"code"] = j[f"schema:value"]
+        if j[f"schema:value"] is not None:
+            codeSystem_option[f"code"] = j[f"schema:value"]
+        else:
+            codeSystem_option[f"code"] = count
         codeSystem_option[f"display"] = str(choice)
 
         options.append(choice.replace(" ", ""))
         codeSystem[f"concept"].append(codeSystem_option)
-
+        count += 1
     return (codeSystem, options)
 
 
@@ -121,7 +119,6 @@ class Generator(ABC):
 
     def __init__(self, config: Config):
         self.config: Config = config
-        # TODO: keep track of code systems created so we only ever create one per option
         self.code_system_options: dict = {}
         self.code_system: dict = {}
         self.value_set: dict = {}
@@ -226,12 +223,12 @@ class QuestionnaireGenerator(Generator):
             elif isinstance(reproschema_schema[f"preamble"], str):
                 group[f"text"] = reproschema_schema[f"preamble"]
         else:
-            group[f"text"] = ""
+            group[f"text"] = " "
 
         group[f"type"] = f"group"
 
         # create a pointer to the reproschema_items jsons
-       
+        # TODO: Sort items so they appear the same way as the order by key
         reproschema_items = OrderedDict([(i, reproschema_content[i])
                                          for i in reproschema_content.keys()
                                          if i.startswith("items/")])
@@ -249,9 +246,9 @@ class QuestionnaireGenerator(Generator):
                     item_type = f"choice"
                 elif item_json[f"ui"][f"inputType"] in (f"number", f"xsd:int"):
                     item_type = f"integer"
-                elif item_json[f"ui"][f"inputType"] == "":
-                    item_type = f"string" # default string for now
-                # TODO: else what?
+                else:
+                    item_type = f"string"
+                
 
             curr_item[f"type"] = item_type
 
@@ -271,8 +268,9 @@ class QuestionnaireGenerator(Generator):
             # prepare the valueset
             value_set = None
             code_system = None
-
-            id_str: str = reproschema_schema["@id"] + var_name
+            # id must be 64 characters
+            #id_str: str = reproschema_schema["@id"] + var_name
+            id_str: str =  var_name
             id_str = id_str.replace("_", "-")
             id_str = id_str.lower()
 
