@@ -239,11 +239,16 @@ class QuestionnaireGenerator(Generator):
 
         group[f"type"] = f"group"
 
-        # create a pointer to the reproschema_items jsons
-        # TODO: Sort items so they appear the same way as the order by key
+        # create a pointer to the reproschema_items jsons and match the question order
         reproschema_items = OrderedDict([(i, reproschema_content[i])
                                          for i in reproschema_content.keys()
                                          if i.startswith("items/")])
+
+        question_order = [(f"items/" + sub.replace("items/", ""))
+                          for sub in reproschema_schema[f"ui"][f"order"]]
+
+        reproschema_items = OrderedDict(
+            (key, reproschema_items[key]) for key in question_order)
 
         items = []
         for item_path, item_json in reproschema_items.items():
@@ -290,7 +295,7 @@ class QuestionnaireGenerator(Generator):
                 # TODO: refactor this out into a separate function
                 # once that is done, the argument signature can be reproschema_items only
                 # FOR VERSION 1.0.0
-                if isinstance(item_json[f"responseOptions"], str):  
+                if isinstance(item_json[f"responseOptions"], str):
                     # resolve the path relative to the items folder to load in the dict
                     codesystem_id_for_valueset = id_str
                     options_path = Path(
@@ -319,7 +324,7 @@ class QuestionnaireGenerator(Generator):
                     # if id_str not in self.code_system:
                     #     self.code_system[id_str] = code_system
                     # VERSION 0.0.1
-                elif isinstance(item_json["responseOptions"], dict): 
+                elif isinstance(item_json["responseOptions"], dict):
                     # we wish to avoid making identical codesystems. we assume the codesystem
                     # we are making doesnt exist yet. Later when we find out it already exists,
                     # we overright the codesystem_id_for_valueset to the codesystem that matches
