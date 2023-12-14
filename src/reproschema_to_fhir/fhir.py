@@ -58,8 +58,9 @@ def generate_code_system(options_json, id_str: str, config) -> dict:
             choice = j[f"schema:name"]
         elif f"name" in j and j[f"name"] != "":
             choice = j[f"name"]
-            if f"en" in j[f"name"] and isinstance([f"name"], dict):
-                choice = choice[f"en"]
+            if config.get_language() in j[f"name"] and isinstance([f"name"],
+                                                                  dict):
+                choice = choice[config.get_language()]
             else:
                 pass
         elif f"schema:value" in j:
@@ -67,9 +68,10 @@ def generate_code_system(options_json, id_str: str, config) -> dict:
         else:
             choice = j[f"value"]
 
-        if (choice and not isinstance(choice, int) and f"en" in choice
+        if (choice and not isinstance(choice, int)
+                and config.get_language() in choice
                 and isinstance(choice, dict)):
-            choice = choice["en"]
+            choice = choice[config.get_language()]
 
         choice = str(choice)
         if f"schema:value" in j and j[f"schema:value"] is not None:
@@ -231,7 +233,8 @@ class QuestionnaireGenerator(Generator):
 
         if f"preamble" in reproschema_schema.keys():
             if isinstance(reproschema_schema[f"preamble"], dict):
-                group[f"text"] = reproschema_schema[f"preamble"]["en"]
+                group[f"text"] = reproschema_schema[f"preamble"][
+                    self.config.get_language()]
             elif isinstance(reproschema_schema[f"preamble"], str):
                 group[f"text"] = reproschema_schema[f"preamble"]
         else:
@@ -239,7 +242,7 @@ class QuestionnaireGenerator(Generator):
 
         group[f"type"] = f"group"
 
-        # create a pointer to the reproschema_items jsons and match the question order
+        # create a pointer to the reproschema_items jsons and match the question
         reproschema_items = OrderedDict([(i, reproschema_content[i])
                                          for i in reproschema_content.keys()
                                          if i.startswith("items/")])
@@ -268,11 +271,10 @@ class QuestionnaireGenerator(Generator):
 
             curr_item[f"type"] = item_type
 
-            # TODO: turn into a get_i18n function, which automatically
-            # uses a self.language arg to pull the relevant language from the dict
             if f"question" in item_json and isinstance(item_json[f"question"],
                                                        dict):
-                curr_item[f"text"] = str(item_json[f"question"][f"en"])
+                curr_item[f"text"] = str(
+                    item_json[f"question"][self.config.get_language()])
             else:
                 curr_item[f"text"] = str(item_json[f"prefLabel"])
 
@@ -318,8 +320,8 @@ class QuestionnaireGenerator(Generator):
                         curr_item[f"linkId"] = var_name
                         curr_item[f"type"] = f"string"
                         curr_item[f"text"] = str(
-                            item_json[f"question"]
-                            ["en"])  #str(item_json[f"prefLabel"])
+                            item_json[f"question"][self.config.get_language(
+                            )])  #str(item_json[f"prefLabel"])
 
                     # if id_str not in self.code_system:
                     #     self.code_system[id_str] = code_system
@@ -340,8 +342,8 @@ class QuestionnaireGenerator(Generator):
                         if f"question" not in item_json:
                             curr_item[f"text"] = str(item_json[f"prefLabel"])
                         else:
-                            curr_item[f"text"] = str(
-                                item_json[f"question"]["en"])
+                            curr_item[f"text"] = str(item_json[f"question"][
+                                self.config.get_language()])
                         code_system = None
                     elif f"choices" in item_json[f"responseOptions"]:
                         options_json = item_json[f"responseOptions"]
@@ -356,7 +358,8 @@ class QuestionnaireGenerator(Generator):
                         curr_item[f"linkId"] = var_name
                         curr_item[f"type"] = f"string"
                         #str(item_json[f"prefLabel"])
-                        curr_item[f"text"] = str(item_json[f"question"]["en"])
+                        curr_item[f"text"] = str(
+                            item_json[f"question"][self.config.get_language()])
             if code_system is not None:
                 value_set = generate_value_set(codesystem_id_for_valueset,
                                                self.config)
