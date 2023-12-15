@@ -242,10 +242,8 @@ class QuestionnaireGenerator(Generator):
                         curr_item[f"type"] = f"string"
                         curr_item[f"text"] = str(
                             item_json[f"question"][self.config.get_language(
-                            )])  #str(item_json[f"prefLabel"])
+                            )])
 
-                    # if id_str not in self.code_system:
-                    #     self.code_system[id_str] = code_system
                     # VERSION 0.0.1
                 elif isinstance(item_json["responseOptions"], dict):
                     # we wish to avoid making identical codesystems. we assume the codesystem
@@ -286,18 +284,16 @@ class QuestionnaireGenerator(Generator):
                                 tuple(options)]
                         curr_item[f"linkId"] = var_name
                         curr_item[f"type"] = f"string"
-                        #str(item_json[f"prefLabel"])
                         curr_item[f"text"] = str(
                             item_json[f"question"][self.config.get_language()])
             if code_system is not None:
-                value_set = generate_value_set(codesystem_id_for_valueset,
-                                               self.config)
+                value_set = generate_value_set(codesystem_id_for_valueset, self.config)
+                
                 if codesystem_id_for_valueset not in self.value_set:
-                    #print(type(self.value_set))
                     self.value_set[codesystem_id_for_valueset] = value_set
                 curr_item["answerValueSet"] = value_set[f"url"]
                 curr_item[f"type"] = f"choice"
-            #group[f"item"].append(curr_item)
+            
 
             items.append(curr_item)
         return items
@@ -327,7 +323,6 @@ class QuestionnaireGenerator(Generator):
                 f"https://voicecollab.ai/fhir/StructureDefinition/vbai-questionnaire"
             ]
         }
-        #print(self.config.get_questionnaire())
         fhir_questionnaire[f"id"] = reproschema_id
         fhir_questionnaire[
             f"url"] = self.config.QUESTIONNAIRE_URI + reproschema_schema[
