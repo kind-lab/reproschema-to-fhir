@@ -23,7 +23,6 @@ from src.reproschema_to_fhir.fhir import QuestionnaireGenerator
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("reproschema_questionnaire")
-    #reproschema_folder = Path.cwd() / "b2ai-redcap2rs/activities/questionnaire_across_all_cohorts_gad7_anxiety"
     args = parser.parse_args()
     reproschema_folder = Path(str(args.reproschema_questionnaire))
 

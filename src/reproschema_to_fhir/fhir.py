@@ -8,6 +8,7 @@ from pathlib import Path
 from fhir.resources.questionnaire import Questionnaire
 from fhir.resources.valueset import ValueSet
 from fhir.resources.codesystem import CodeSystem
+from datetime import datetime, timezone
 
 from .config import Config
 
@@ -30,7 +31,7 @@ def generate_code_system(options_json, id_str: str, config) -> dict:
     codeSystem[f"name"] = id_str.capitalize().replace("_", "")
     codeSystem[f"title"] = id_str
     codeSystem[f"status"] = f"active"
-    codeSystem[f"date"] = f"2023-11-20T11:33:15-05:00"
+    codeSystem[f"date"] = str(datetime.now(timezone.utc))
     codeSystem[f"publisher"] = f"KinD Lab"
     codeSystem[f"contact"] = [{
         f"name":
@@ -103,7 +104,7 @@ def generate_value_set(id_str: str, config) -> dict:
     valueset[f"name"] = id_str.capitalize().replace("_", "")
     valueset[f"title"] = id_str
     valueset[f"status"] = f"active"
-    valueset[f"date"] = f"2023-11-20"
+    valueset[f"date"] = str(datetime.today().strftime('%Y-%m-%d'))
     valueset[f"publisher"] = f"KinD Lab"
     valueset[f"contact"] = [{
         f"name":
@@ -336,7 +337,7 @@ class QuestionnaireGenerator(Generator):
         }
         fhir_questionnaire[f"version"] = f"1.4.0"
         fhir_questionnaire[f"status"] = f"active"
-        fhir_questionnaire[f"date"] = f"2023-11-20T11:33:15-05:00"
+        fhir_questionnaire[f"date"] = str(datetime.now(timezone.utc))
         fhir_questionnaire[f"publisher"] = f"KinD Lab"
         fhir_questionnaire[f"contact"] = [{
             f"name":
