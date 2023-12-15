@@ -156,7 +156,8 @@ class QuestionnaireGenerator(Generator):
         questionnaire = Questionnaire.parse_raw(questionnaire_dict)
         return questionnaire
 
-    def parse_reproschema_items(self, reproschema_content: OrderedDict):
+    def parse_reproschema_items(self, reproschema_items: OrderedDict,
+                                reproschema_content: OrderedDict):
         """
         Helper function to parse reproschema items into fhir items
 
@@ -174,7 +175,132 @@ class QuestionnaireGenerator(Generator):
             ...
         }
         """
-        raise NotImplementedError()
+        # there are a few possibilities for responses presented by reproschema:
+        # 1. responseOptions is a string, which is a reference to a file with the responses
+        # 2. responseOptions is a dict, which is a list of options
+
+        items = []
+
+        for item_path, item_json in reproschema_items.items():
+            curr_item = dict()
+
+            var_name = item_path.replace(f"items/", "")
+            curr_item[f"linkId"] = var_name
+
+            item_type = f"string"
+            if f"inputType" in item_json[f"ui"]:
+                if item_json[f"ui"][f"inputType"] == f"radio":
+                    item_type = f"choice"
+                elif item_json[f"ui"][f"inputType"] in (f"number", f"xsd:int"):
+                    item_type = f"integer"
+                else:
+                    item_type = f"string"
+
+            curr_item[f"type"] = item_type
+
+            if f"question" in item_json and isinstance(item_json[f"question"],
+                                                       dict):
+                curr_item[f"text"] = str(
+                    item_json[f"question"][self.config.get_language()])
+            elif f"prefLabel" in item_json:
+                curr_item[f"text"] = str(item_json[f"prefLabel"])
+            else:
+                curr_item[f"text"] = curr_item[f"linkId"]
+
+            # now we prepare the ValueSet used for the response options
+            # prepare the valueset
+            value_set = None
+            code_system = None
+            # id must be 64 characters
+            id_str: str = var_name
+            id_str = id_str.replace("_", "-")
+            id_str = id_str.lower()
+
+            if f"responseOptions" in item_json:
+                # FOR VERSION 1.0.0
+                if isinstance(item_json[f"responseOptions"], str):
+                    # resolve the path relative to the items folder to load in the dict
+                    codesystem_id_for_valueset = id_str
+                    options_path = Path(
+                        item_path).parent / item_json[f'responseOptions']
+                    options_path = options_path.resolve()
+
+                    options_json = reproschema_content[(
+                        str(options_path)).split("/")[-1]]
+
+                    # create a code system for this
+                    (code_system,
+                     options) = generate_code_system(options_json, id_str,
+                                                     self.config)
+                    if tuple(options) not in self.code_system_options:
+                        self.code_system_options[tuple(options)] = id_str
+                        self.code_system[id_str] = code_system
+                    else:
+                        codesystem_id_for_valueset = self.code_system_options[
+                            tuple(options)]
+                        curr_item[f"linkId"] = var_name
+                        curr_item[f"type"] = f"string"
+                        curr_item[f"text"] = str(
+                            item_json[f"question"][self.config.get_language(
+                            )])  #str(item_json[f"prefLabel"])
+
+                    # if id_str not in self.code_system:
+                    #     self.code_system[id_str] = code_system
+                    # VERSION 0.0.1
+                elif isinstance(item_json["responseOptions"], dict):
+                    # we wish to avoid making identical codesystems. we assume the codesystem
+                    # we are making doesnt exist yet. Later when we find out it already exists,
+                    # we overright the codesystem_id_for_valueset to the codesystem that matches
+                    codesystem_id_for_valueset = id_str
+                    if f"choices" not in item_json[f"responseOptions"]:
+                        curr_item[f"linkId"] = var_name
+                        if f"valueType" in item_json[
+                                f"responseOptions"] and f"int" in item_json[
+                                    f"responseOptions"][f"valueType"]:
+                            curr_item[f"type"] = f"integer"
+                        elif f"valueType" in item_json[
+                                f"responseOptions"] and f"date" in item_json[
+                                    f"responseOptions"][f"valueType"]:
+                            curr_item[f"type"] = f"date"
+                        else:
+                            curr_item[f"type"] = f"string"
+                        if f"question" not in item_json:
+                            if f"prefLabel" in item_json:
+                                curr_item[f"text"] = str(
+                                    item_json[f"prefLabel"])
+                            else:
+                                curr_item[f"text"] = curr_item[f"linkId"]
+                        else:
+                            curr_item[f"text"] = str(item_json[f"question"][
+                                self.config.get_language()])
+                        code_system = None
+                    elif f"choices" in item_json[f"responseOptions"]:
+                        options_json = item_json[f"responseOptions"]
+                        (code_system, options) = generate_code_system(
+                            options_json, id_str, self.config)
+                        if tuple(options) not in self.code_system_options:
+                            self.code_system_options[tuple(options)] = id_str
+                            self.code_system[id_str] = code_system
+                        else:
+                            codesystem_id_for_valueset = self.code_system_options[
+                                tuple(options)]
+                        curr_item[f"linkId"] = var_name
+                        curr_item[f"type"] = f"string"
+                        #str(item_json[f"prefLabel"])
+                        curr_item[f"text"] = str(
+                            item_json[f"question"][self.config.get_language()])
+            if code_system is not None:
+                value_set = generate_value_set(codesystem_id_for_valueset,
+                                               self.config)
+                if codesystem_id_for_valueset not in self.value_set:
+                    #print(type(self.value_set))
+                    self.value_set[codesystem_id_for_valueset] = value_set
+                curr_item["answerValueSet"] = value_set[f"url"]
+                curr_item[f"type"] = f"choice"
+            #group[f"item"].append(curr_item)
+
+            items.append(curr_item)
+        return items
 
     def convert_to_fhir(self, reproschema_content: dict):
         """
@@ -253,124 +379,9 @@ class QuestionnaireGenerator(Generator):
         reproschema_items = OrderedDict(
             (key, reproschema_items[key]) for key in question_order)
 
-        items = []
-        for item_path, item_json in reproschema_items.items():
-            curr_item = dict()
+        items = self.parse_reproschema_items(reproschema_items,
+                                             reproschema_content)
 
-            var_name = item_path.replace(f"items/", "")
-            curr_item[f"linkId"] = var_name
-
-            item_type = f"string"
-            if f"inputType" in item_json[f"ui"]:
-                if item_json[f"ui"][f"inputType"] == f"radio":
-                    item_type = f"choice"
-                elif item_json[f"ui"][f"inputType"] in (f"number", f"xsd:int"):
-                    item_type = f"integer"
-                else:
-                    item_type = f"string"
-
-            curr_item[f"type"] = item_type
-
-            if f"question" in item_json and isinstance(item_json[f"question"],
-                                                       dict):
-                curr_item[f"text"] = str(
-                    item_json[f"question"][self.config.get_language()])
-            else:
-                curr_item[f"text"] = str(item_json[f"prefLabel"])
-
-            # now we prepare the ValueSet used for the response options
-            # there are a few possibilities for responses presented by reproschema:
-            # 1. responseOptions is a string, which is a reference to a file with the responses
-            # 2. responseOptions is a dict, which is a list of options
-
-            # prepare the valueset
-            value_set = None
-            code_system = None
-            # id must be 64 characters
-            #id_str: str = reproschema_schema["@id"] + var_name
-            id_str: str = var_name
-            id_str = id_str.replace("_", "-")
-            id_str = id_str.lower()
-
-            if f"responseOptions" in item_json:
-                # if responseOptions is a string, it is a reference to a constraint file
-                # TODO: refactor this out into a separate function
-                # once that is done, the argument signature can be reproschema_items only
-                # FOR VERSION 1.0.0
-                if isinstance(item_json[f"responseOptions"], str):
-                    # resolve the path relative to the items folder to load in the dict
-                    codesystem_id_for_valueset = id_str
-                    options_path = Path(
-                        item_path).parent / item_json[f'responseOptions']
-                    options_path = options_path.resolve()
-
-                    options_json = reproschema_content[(
-                        str(options_path)).split("/")[-1]]
-
-                    # create a code system for this
-                    (code_system,
-                     options) = generate_code_system(options_json, id_str,
-                                                     self.config)
-                    if tuple(options) not in self.code_system_options:
-                        self.code_system_options[tuple(options)] = id_str
-                        self.code_system[id_str] = code_system
-                    else:
-                        codesystem_id_for_valueset = self.code_system_options[
-                            tuple(options)]
-                        curr_item[f"linkId"] = var_name
-                        curr_item[f"type"] = f"string"
-                        curr_item[f"text"] = str(
-                            item_json[f"question"][self.config.get_language(
-                            )])  #str(item_json[f"prefLabel"])
-
-                    # if id_str not in self.code_system:
-                    #     self.code_system[id_str] = code_system
-                    # VERSION 0.0.1
-                elif isinstance(item_json["responseOptions"], dict):
-                    # we wish to avoid making identical codesystems. we assume the codesystem
-                    # we are making doesnt exist yet. Later when we find out it already exists,
-                    # we overright the codesystem_id_for_valueset to the codesystem that matches
-                    codesystem_id_for_valueset = id_str
-                    if f"choices" not in item_json[f"responseOptions"]:
-                        curr_item[f"linkId"] = var_name
-                        if f"valueType" in item_json[
-                                f"responseOptions"] and f"int" in item_json[
-                                    f"responseOptions"][f"valueType"]:
-                            curr_item[f"type"] = f"integer"
-                        else:
-                            curr_item[f"type"] = f"string"
-                        if f"question" not in item_json:
-                            curr_item[f"text"] = str(item_json[f"prefLabel"])
-                        else:
-                            curr_item[f"text"] = str(item_json[f"question"][
-                                self.config.get_language()])
-                        code_system = None
-                    elif f"choices" in item_json[f"responseOptions"]:
-                        options_json = item_json[f"responseOptions"]
-                        (code_system, options) = generate_code_system(
-                            options_json, id_str, self.config)
-                        if tuple(options) not in self.code_system_options:
-                            self.code_system_options[tuple(options)] = id_str
-                            self.code_system[id_str] = code_system
-                        else:
-                            codesystem_id_for_valueset = self.code_system_options[
-                                tuple(options)]
-                        curr_item[f"linkId"] = var_name
-                        curr_item[f"type"] = f"string"
-                        #str(item_json[f"prefLabel"])
-                        curr_item[f"text"] = str(
-                            item_json[f"question"][self.config.get_language()])
-            if code_system is not None:
-                value_set = generate_value_set(codesystem_id_for_valueset,
-                                               self.config)
-                if codesystem_id_for_valueset not in self.value_set:
-                    #print(type(self.value_set))
-                    self.value_set[codesystem_id_for_valueset] = value_set
-                curr_item["answerValueSet"] = value_set[f"url"]
-                curr_item[f"type"] = f"choice"
-            #group[f"item"].append(curr_item)
-
-            items.append(curr_item)
         group[f"item"] = items
 
         fhir_questionnaire[f"item"].append(group)
