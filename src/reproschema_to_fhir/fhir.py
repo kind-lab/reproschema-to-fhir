@@ -19,34 +19,34 @@ def generate_code_system(options_json, id_str: str, config) -> dict:
     """
     # default headers for codesystem
     codeSystem = dict()
-    codeSystem[f"resourceType"] = f"CodeSystem"
-    codeSystem[f"id"] = id_str
-    codeSystem[f"text"] = {
-        f"status": f"generated",
-        f"div": f'<div xmlns="http://www.w3.org/1999/xhtml">Placeholder</div>',
+    codeSystem["resourceType"] = "CodeSystem"
+    codeSystem["id"] = id_str
+    codeSystem["text"] = {
+        "status": "generated",
+        "div": '<div xmlns="http://www.w3.org/1999/xhtml">Placeholder</div>',
     }
 
-    codeSystem[f"url"] = f"{config.get_codesystem()}{id_str}"
-    codeSystem[f"version"] = f"1.4.0"
-    codeSystem[f"name"] = id_str.capitalize().replace("_", "")
-    codeSystem[f"title"] = id_str
-    codeSystem[f"status"] = f"active"
-    codeSystem[f"date"] = str(datetime.now(timezone.utc))
-    codeSystem[f"publisher"] = f"KinD Lab"
-    codeSystem[f"contact"] = [{
-        f"name":
-        f"KinD Lab",
-        f"telecom": [{
-            f"system": f"url",
-            f"value": f"http://fhir.kindlab.sickkids.ca"
+    codeSystem["url"] = f"{config.get_codesystem()}{id_str}"
+    codeSystem["version"] = "1.4.0"
+    codeSystem["name"] = id_str.capitalize().replace("_", "")
+    codeSystem["title"] = id_str
+    codeSystem["status"] = "active"
+    codeSystem["date"] = (datetime.now(timezone.utc)).strftime('%Y-%m-%d %H:%M:%S.%f')
+    codeSystem["publisher"] = "KinD Lab"
+    codeSystem["contact"] = [{
+        "name":
+        "KinD Lab",
+        "telecom": [{
+            "system": "url",
+            "value": "http://fhir.kindlab.sickkids.ca"
         }],
     }]
 
-    codeSystem[f"description"] = id_str
-    codeSystem[f"caseSensitive"] = True
-    codeSystem[f"content"] = f"complete"
-    codeSystem[f"count"] = len(options_json[f"choices"])
-    codeSystem[f"concept"] = []
+    codeSystem["description"] = id_str
+    codeSystem["caseSensitive"] = True
+    codeSystem["content"] = "complete"
+    codeSystem["count"] = len(options_json["choices"])
+    codeSystem["concept"] = []
 
     options = []
     # we wish to retrieve each option stored in the reproschema json list. We do this by parsing the list
@@ -55,19 +55,19 @@ def generate_code_system(options_json, id_str: str, config) -> dict:
     for j in options_json[f"choices"]:
 
         codeSystem_option = dict()
-        if f"schema:name" in j and j[f"schema:name"] != "":
-            choice = j[f"schema:name"]
-        elif f"name" in j and j[f"name"] != "":
+        if "schema:name" in j and j["schema:name"] != "":
+            choice = j["schema:name"]
+        elif "name" in j and j["name"] != "":
             choice = j[f"name"]
-            if config.get_language() in j[f"name"] and isinstance([f"name"],
+            if config.get_language() in j["name"] and isinstance(["name"],
                                                                   dict):
                 choice = choice[config.get_language()]
             else:
                 pass
-        elif f"schema:value" in j:
-            choice = j[f"schema:value"]
+        elif "schema:value" in j:
+            choice = j["schema:value"]
         else:
-            choice = j[f"value"]
+            choice = j["value"]
 
         if (choice and not isinstance(choice, int)
                 and config.get_language() in choice
@@ -75,10 +75,10 @@ def generate_code_system(options_json, id_str: str, config) -> dict:
             choice = choice[config.get_language()]
 
         choice = str(choice)
-        if f"schema:value" in j and j[f"schema:value"] is not None:
-            codeSystem_option[f"code"] = j[f"schema:value"]
-        elif f"value" in j and j[f"value"] is not None:
-            codeSystem_option[f"code"] = j[f"value"]
+        if "schema:value" in j and j["schema:value"] is not None:
+            codeSystem_option["code"] = j[f"schema:value"]
+        elif "value" in j and j["value"] is not None:
+            codeSystem_option["code"] = j["value"]
         else:
             codeSystem_option[f"code"] = count
         codeSystem_option[f"display"] = str(choice)
@@ -91,35 +91,35 @@ def generate_code_system(options_json, id_str: str, config) -> dict:
 
 def generate_value_set(id_str: str, config) -> dict:
     valueset = dict()
-    valueset[f"resourceType"] = f"ValueSet"
-    valueset[f"id"] = id_str
-    valueset[f"text"] = {
-        f"status": f"generated",
-        f"div":
-        f"<div xmlns=\"http://www.w3.org/1999/xhtml\">Placeholder</div>"
+    valueset["resourceType"] = "ValueSet"
+    valueset["id"] = id_str
+    valueset["text"] = {
+        "status": "generated",
+        "div":
+        "<div xmlns=\"http://www.w3.org/1999/xhtml\">Placeholder</div>"
     }
-    valueset[f"url"] = f"{config.get_valueset()}{id_str}"
-    valueset[f"version"] = f"1.4.0"
+    valueset["url"] = f"{config.get_valueset()}{id_str}"
+    valueset["version"] = "1.4.0"
 
-    valueset[f"name"] = id_str.capitalize().replace("_", "")
-    valueset[f"title"] = id_str
-    valueset[f"status"] = f"active"
-    valueset[f"date"] = str(datetime.today().strftime('%Y-%m-%d'))
-    valueset[f"publisher"] = f"KinD Lab"
-    valueset[f"contact"] = [{
-        f"name":
-        f"KinD Lab",
-        f"telecom": [{
-            f"system": f"url",
-            f"value": f"http://fhir.kindlab.sickkids.ca"
+    valueset["name"] = id_str.capitalize().replace("_", "")
+    valueset["title"] = id_str
+    valueset["status"] = "active"
+    valueset["date"] = str(datetime.today().strftime('%Y-%m-%d'))
+    valueset["publisher"] = f"KinD Lab"
+    valueset["contact"] = [{
+        "name":
+        "KinD Lab",
+        "telecom": [{
+            "system": "url",
+            "value": "http://fhir.kindlab.sickkids.ca"
         }]
     }]
 
-    valueset[f"description"] = id_str
-    valueset[f"compose"] = dict()
+    valueset["description"] = id_str
+    valueset["compose"] = dict()
 
-    valueset[f"compose"][f"include"] = [{
-        f"system":
+    valueset["compose"]["include"] = [{
+        "system":
         f"{config.get_codesystem()}{id_str}"
     }]
 
@@ -185,26 +185,26 @@ class QuestionnaireGenerator(Generator):
         for item_path, item_json in reproschema_items.items():
             curr_item = dict()
 
-            var_name = item_path.replace(f"items/", "")
-            curr_item[f"linkId"] = var_name
+            var_name = item_path.replace("items/", "")
+            curr_item["linkId"] = var_name
 
-            item_type = f"string"
-            if f"inputType" in item_json[f"ui"]:
-                if item_json[f"ui"][f"inputType"] == f"radio":
+            item_type = "string"
+            if "inputType" in item_json["ui"]:
+                if item_json["ui"]["inputType"] == "radio":
                     item_type = f"choice"
-                elif item_json[f"ui"][f"inputType"] in (f"number", f"xsd:int"):
-                    item_type = f"integer"
+                elif item_json["ui"]["inputType"] in ("number", "xsd:int"):
+                    item_type = "integer"
                 else:
-                    item_type = f"string"
+                    item_type = "string"
 
-            curr_item[f"type"] = item_type
+            curr_item["type"] = item_type
 
-            if f"question" in item_json and isinstance(item_json[f"question"],
+            if "question" in item_json and isinstance(item_json["question"],
                                                        dict):
-                curr_item[f"text"] = str(
-                    item_json[f"question"][self.config.get_language()])
+                curr_item["text"] = str(
+                    item_json["question"][self.config.get_language()])
             elif f"prefLabel" in item_json:
-                curr_item[f"text"] = str(item_json[f"prefLabel"])
+                curr_item["text"] = str(item_json["prefLabel"])
             else:
                 curr_item[f"text"] = curr_item[f"linkId"]
 
@@ -217,13 +217,13 @@ class QuestionnaireGenerator(Generator):
             id_str = id_str.replace("_", "-")
             id_str = id_str.lower()
 
-            if f"responseOptions" in item_json:
+            if "responseOptions" in item_json:
                 # FOR VERSION 1.0.0
-                if isinstance(item_json[f"responseOptions"], str):
+                if isinstance(item_json["responseOptions"], str):
                     # resolve the path relative to the items folder to load in the dict
                     codesystem_id_for_valueset = id_str
                     options_path = Path(
-                        item_path).parent / item_json[f'responseOptions']
+                        item_path).parent / item_json['responseOptions']
                     options_path = options_path.resolve()
 
                     options_json = reproschema_content[(
@@ -239,11 +239,10 @@ class QuestionnaireGenerator(Generator):
                     else:
                         codesystem_id_for_valueset = self.code_system_options[
                             tuple(options)]
-                        curr_item[f"linkId"] = var_name
-                        curr_item[f"type"] = f"string"
-                        curr_item[f"text"] = str(
-                            item_json[f"question"][self.config.get_language(
-                            )])
+                        curr_item["linkId"] = var_name
+                        curr_item["type"] = "string"
+                        curr_item["text"] = str(
+                            item_json["question"][self.config.get_language()])
 
                     # VERSION 0.0.1
                 elif isinstance(item_json["responseOptions"], dict):
@@ -251,30 +250,30 @@ class QuestionnaireGenerator(Generator):
                     # we are making doesnt exist yet. Later when we find out it already exists,
                     # we overright the codesystem_id_for_valueset to the codesystem that matches
                     codesystem_id_for_valueset = id_str
-                    if f"choices" not in item_json[f"responseOptions"]:
-                        curr_item[f"linkId"] = var_name
-                        if f"valueType" in item_json[
-                                f"responseOptions"] and f"int" in item_json[
-                                    f"responseOptions"][f"valueType"]:
+                    if "choices" not in item_json["responseOptions"]:
+                        curr_item["linkId"] = var_name
+                        if "valueType" in item_json[
+                                "responseOptions"] and "int" in item_json[
+                                    "responseOptions"]["valueType"]:
                             curr_item[f"type"] = f"integer"
-                        elif f"valueType" in item_json[
-                                f"responseOptions"] and f"date" in item_json[
-                                    f"responseOptions"][f"valueType"]:
-                            curr_item[f"type"] = f"date"
+                        elif "valueType" in item_json[
+                                "responseOptions"] and "date" in item_json[
+                                    "responseOptions"]["valueType"]:
+                            curr_item["type"] = "date"
                         else:
-                            curr_item[f"type"] = f"string"
-                        if f"question" not in item_json:
-                            if f"prefLabel" in item_json:
-                                curr_item[f"text"] = str(
-                                    item_json[f"prefLabel"])
+                            curr_item["type"] = "string"
+                        if "question" not in item_json:
+                            if "prefLabel" in item_json:
+                                curr_item["text"] = str(
+                                    item_json["prefLabel"])
                             else:
-                                curr_item[f"text"] = curr_item[f"linkId"]
+                                curr_item["text"] = curr_item["linkId"]
                         else:
-                            curr_item[f"text"] = str(item_json[f"question"][
+                            curr_item["text"] = str(item_json["question"][
                                 self.config.get_language()])
                         code_system = None
-                    elif f"choices" in item_json[f"responseOptions"]:
-                        options_json = item_json[f"responseOptions"]
+                    elif "choices" in item_json["responseOptions"]:
+                        options_json = item_json["responseOptions"]
                         (code_system, options) = generate_code_system(
                             options_json, id_str, self.config)
                         if tuple(options) not in self.code_system_options:
@@ -283,18 +282,18 @@ class QuestionnaireGenerator(Generator):
                         else:
                             codesystem_id_for_valueset = self.code_system_options[
                                 tuple(options)]
-                        curr_item[f"linkId"] = var_name
-                        curr_item[f"type"] = f"string"
-                        curr_item[f"text"] = str(
-                            item_json[f"question"][self.config.get_language()])
+                        curr_item["linkId"] = var_name
+                        curr_item["type"] = f"string"
+                        curr_item["text"] = str(
+                            item_json["question"][self.config.get_language()])
             if code_system is not None:
-                value_set = generate_value_set(codesystem_id_for_valueset, self.config)
-                
+                value_set = generate_value_set(codesystem_id_for_valueset,
+                                               self.config)
+
                 if codesystem_id_for_valueset not in self.value_set:
                     self.value_set[codesystem_id_for_valueset] = value_set
-                curr_item["answerValueSet"] = value_set[f"url"]
-                curr_item[f"type"] = f"choice"
-            
+                curr_item["answerValueSet"] = value_set["url"]
+                curr_item["type"] = "choice"
 
             items.append(curr_item)
         return items
@@ -318,58 +317,58 @@ class QuestionnaireGenerator(Generator):
         reproschema_id = (reproschema_schema["@id"]).replace("_", "")
 
         # create fhir questionnaire
-        fhir_questionnaire[f"resourceType"] = f"Questionnaire"
-        fhir_questionnaire[f"meta"] = {
-            f"profile": [
+        fhir_questionnaire["resourceType"] = "Questionnaire"
+        fhir_questionnaire["meta"] = {
+            "profile": [
                 f"https://voicecollab.ai/fhir/StructureDefinition/vbai-questionnaire"
             ]
         }
-        fhir_questionnaire[f"id"] = reproschema_id
+        fhir_questionnaire["id"] = reproschema_id
         fhir_questionnaire[
-            f"url"] = self.config.QUESTIONNAIRE_URI + reproschema_schema[
-                f"@id"].replace("_", "")
-        fhir_questionnaire[f"title"] = reproschema_schema["@id"]
+            "url"] = self.config.QUESTIONNAIRE_URI + reproschema_schema[
+                "@id"].replace("_", "")
+        fhir_questionnaire["title"] = reproschema_schema["@id"]
 
-        fhir_questionnaire[f"text"] = {
-            f"status": f"generated",
-            f"div":
-            f'<div xmlns="http://www.w3.org/1999/xhtml">Placeholder</div>',
+        fhir_questionnaire["text"] = {
+            "status": "generated",
+            "div":
+            '<div xmlns="http://www.w3.org/1999/xhtml">Placeholder</div>',
         }
-        fhir_questionnaire[f"version"] = f"1.4.0"
-        fhir_questionnaire[f"status"] = f"active"
-        fhir_questionnaire[f"date"] = str(datetime.now(timezone.utc))
+        fhir_questionnaire[f"version"] = "1.4.0"
+        fhir_questionnaire[f"status"] = "active"
+        fhir_questionnaire[f"date"] = (datetime.now(timezone.utc)).strftime('%Y-%m-%d %H:%M:%S.%f')
         fhir_questionnaire[f"publisher"] = f"KinD Lab"
         fhir_questionnaire[f"contact"] = [{
-            f"name":
-            f"KinD Lab",
-            f"telecom": [{
-                f"system": f"url",
-                f"value": f"http://fhir.kindlab.sickkids.ca"
+            "name":
+            "KinD Lab",
+            "telecom": [{
+                "system": "url",
+                "value": "http://fhir.kindlab.sickkids.ca"
             }],
         }]
 
-        fhir_questionnaire[f"item"] = []
+        fhir_questionnaire["item"] = []
 
         group = dict()
-        group[f"linkId"] = f"T1"
+        group["linkId"] = "T1"
 
-        if f"preamble" in reproschema_schema.keys():
-            if isinstance(reproschema_schema[f"preamble"], dict):
-                group[f"text"] = reproschema_schema[f"preamble"][
+        if "preamble" in reproschema_schema.keys():
+            if isinstance(reproschema_schema["preamble"], dict):
+                group["text"] = reproschema_schema["preamble"][
                     self.config.get_language()]
-            elif isinstance(reproschema_schema[f"preamble"], str):
-                group[f"text"] = reproschema_schema[f"preamble"]
+            elif isinstance(reproschema_schema["preamble"], str):
+                group["text"] = reproschema_schema["preamble"]
         else:
-            group[f"text"] = " "
+            group["text"] = " "
 
-        group[f"type"] = f"group"
+        group["type"] = "group"
 
         # create a pointer to the reproschema_items jsons and match the question
-        reproschema_items = OrderedDict([(i, reproschema_content[i])
-                                         for i in reproschema_content.keys()
+        reproschema_items = OrderedDict([(i, value)
+                                         for (i, value) in reproschema_content.items()
                                          if i.startswith("items/")])
 
-        question_order = [(f"items/" + sub.replace("items/", ""))
+        question_order = [("items/" + sub.replace("items/", ""))
                           for sub in reproschema_schema[f"ui"][f"order"]]
 
         reproschema_items = OrderedDict(
@@ -380,5 +379,5 @@ class QuestionnaireGenerator(Generator):
 
         group[f"item"] = items
 
-        fhir_questionnaire[f"item"].append(group)
+        fhir_questionnaire["item"].append(group)
         return fhir_questionnaire

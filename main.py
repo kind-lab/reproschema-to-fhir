@@ -17,14 +17,19 @@ from fhir.resources import construct_fhir_element
 
 from reproschema.jsonldutils import load_file
 
-from src.reproschema_to_fhir.config import Config
-from src.reproschema_to_fhir.fhir import QuestionnaireGenerator
+from reproschema_to_fhir.config import Config
+from reproschema_to_fhir.fhir import QuestionnaireGenerator
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    # string param of path to folder containing reproschema files
     parser.add_argument("reproschema_questionnaire")
     args = parser.parse_args()
-    reproschema_folder = Path(str(args.reproschema_questionnaire))
+    reproschema_folder = Path(args.reproschema_questionnaire)
+    if not os.path.isdir(reproschema_folder):
+        raise FileNotFoundError(
+            f"{reproschema_folder} does not exist. Please check if folder exists and is located at the correct directory"
+        )
 
     # load each file recursively within the folder into its own key in the reproschema_content dict
     reproschema_content = OrderedDict()
@@ -34,7 +39,7 @@ if __name__ == '__main__':
             # since files can be referenced by relative paths, we need to keep track of relative location
             filename = str(file.relative_to(reproschema_folder))
             with open(f"{reproschema_folder}/{filename}") as f:
-                reproschema_content[filename] = json.loads(str(f.read()))
+                reproschema_content[filename] = json.loads(f.read())
 
     schema_name = [
         name for name in list(reproschema_content.keys())
@@ -58,31 +63,20 @@ if __name__ == '__main__':
     fhir_questionnaire = questionnaire_generator.convert_to_fhir(
         reproschema_content)
 
-    try:
-        questionnaire_json = construct_fhir_element('Questionnaire',
-                                                    fhir_questionnaire)
-    except:
-        raise ValueError(f"The Questionnaire json is not properly structured")
+    questionnaire_json = construct_fhir_element('Questionnaire',
+                                                fhir_questionnaire)
 
-    try:
-        valueset_dict = questionnaire_generator.get_value_set()
+    valueset_dict = questionnaire_generator.get_value_set()
 
-        for valueset in valueset_dict:
-            valueset_json = construct_fhir_element('ValueSet',
-                                                   valueset_dict[valueset])
-    except:
-        raise ValueError(
-            f"One of the valueset json's are not properly structured")
+    for valueset in valueset_dict:
+        valueset_json = construct_fhir_element('ValueSet',
+                                               valueset_dict[valueset])
 
-    try:
-        codesystem_dict = questionnaire_generator.get_code_system()
+    codesystem_dict = questionnaire_generator.get_code_system()
 
-        for codesystem in codesystem_dict:
-            codesystem_json = construct_fhir_element(
-                'CodeSystem', codesystem_dict[codesystem])
-    except:
-        raise ValueError(
-            f"One of the codesystem json's are not properly structured")
+    for codesystem in codesystem_dict:
+        codesystem_json = construct_fhir_element('CodeSystem',
+                                                 codesystem_dict[codesystem])
 
     # get filename from the reproschema_folder name provided
     file_name = reproschema_folder.parts[-1]
