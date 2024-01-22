@@ -8,114 +8,123 @@ from pathlib import Path
 from fhir.resources.questionnaire import Questionnaire
 from fhir.resources.valueset import ValueSet
 from fhir.resources.codesystem import CodeSystem
+from datetime import datetime, timezone
 
 from .config import Config
 
-# TODO: migrate these globals to the config
-CODESYSTEM_URI = os.getenv('CODESYSTEM_URI')
-VALUESET_URI = os.getenv('VALUESET_URI')
-QUESTIONNAIRE_URI = os.getenv('QUESTIONNAIRE_URI')
 
-def generate_code_system(
-    options_json, id_str: str
-) -> dict:
+def generate_code_system(options_json, id_str: str, config) -> dict:
     """
     Helper function to generate a FHIR CodeSystem resource from a reproschema options json.
     """
     # default headers for codesystem
     codeSystem = dict()
-    # id = questionnaire + linkId
-    # id = id.replace("_", "-")
-    # id = id.lower()
-
-    codeSystem[f"resourceType"] = f"CodeSystem"
-    codeSystem[f"id"] = id_str
-    codeSystem[f"text"] = {
-        f"status": f"generated",
-        f"div": f'<div xmlns="http://www.w3.org/1999/xhtml">Placeholder</div>',
+    codeSystem["resourceType"] = "CodeSystem"
+    codeSystem["id"] = id_str
+    codeSystem["text"] = {
+        "status": "generated",
+        "div": '<div xmlns="http://www.w3.org/1999/xhtml">Placeholder</div>',
     }
 
-    codeSystem[f"url"] = f"{CODESYSTEM_URI}{id_str}"
-    codeSystem[f"version"] = f"1.4.0"
-    codeSystem[f"name"] = id_str.capitalize().replace("_", "")
-    codeSystem[f"title"] = id_str
-    codeSystem[f"status"] = f"active"
-    codeSystem[f"date"] = f"2023-11-20T11:33:15-05:00"
-    codeSystem[f"publisher"] = f"KinD Lab"
-    codeSystem[f"contact"] = [
-        {
-            f"name": f"KinD Lab",
-            f"telecom": [
-                {f"system": f"url", f"value": f"http://fhir.kindlab.sickkids.ca"}
-            ],
-        }
-    ]
+    codeSystem["url"] = f"{config.get_codesystem()}{id_str}"
+    codeSystem["version"] = "1.4.0"
+    codeSystem["name"] = id_str.capitalize().replace("_", "")
+    codeSystem["title"] = id_str
+    codeSystem["status"] = "active"
+    codeSystem["date"] = (datetime.now(timezone.utc)).strftime('%Y-%m-%d %H:%M:%S.%f')
+    codeSystem["publisher"] = "KinD Lab"
+    codeSystem["contact"] = [{
+        "name":
+        "KinD Lab",
+        "telecom": [{
+            "system": "url",
+            "value": "http://fhir.kindlab.sickkids.ca"
+        }],
+    }]
 
-    codeSystem[f"description"] = id_str
-    codeSystem[f"caseSensitive"] = True
-    codeSystem[f"content"] = f"complete"
-    codeSystem[f"count"] = len(options_json[f"choices"])
-    codeSystem[f"concept"] = []
+    codeSystem["description"] = id_str
+    codeSystem["caseSensitive"] = True
+    codeSystem["content"] = "complete"
+    codeSystem["count"] = len(options_json["choices"])
+    codeSystem["concept"] = []
 
     options = []
     # we wish to retrieve each option stored in the reproschema json list. We do this by parsing the list
     # of jsons and append then contents to an outlined codesystem
+    count = 1
     for j in options_json[f"choices"]:
-        codeSystem_option = dict()
-        if f"schema:name" in j and j[f"schema:name"] != "":
-            choice = j[f"schema:name"]
-        else:
-            choice = j[f"schema:value"]
 
-        if (
-            choice
-            and not isinstance(choice, int)
-            and f"en" in choice
-            and isinstance(choice, dict)
-        ):
-            choice = choice["en"]
+        codeSystem_option = dict()
+        if "schema:name" in j and j["schema:name"] != "":
+            choice = j["schema:name"]
+        elif "name" in j and j["name"] != "":
+            choice = j[f"name"]
+            if config.get_language() in j["name"] and isinstance(["name"],
+                                                                  dict):
+                choice = choice[config.get_language()]
+            else:
+                pass
+        elif "schema:value" in j:
+            choice = j["schema:value"]
+        else:
+            choice = j["value"]
+
+        if (choice and not isinstance(choice, int)
+                and config.get_language() in choice
+                and isinstance(choice, dict)):
+            choice = choice[config.get_language()]
 
         choice = str(choice)
-        codeSystem_option[f"code"] = j[f"schema:value"]
+        if "schema:value" in j and j["schema:value"] is not None:
+            codeSystem_option["code"] = j[f"schema:value"]
+        elif "value" in j and j["value"] is not None:
+            codeSystem_option["code"] = j["value"]
+        else:
+            codeSystem_option[f"code"] = count
         codeSystem_option[f"display"] = str(choice)
 
         options.append(choice.replace(" ", ""))
         codeSystem[f"concept"].append(codeSystem_option)
+        count += 1
+    return (codeSystem, options)
 
-    return codeSystem
 
-
-def generate_value_set(id_str: str) -> dict:
+def generate_value_set(id_str: str, config) -> dict:
     valueset = dict()
-    valueset[f"resourceType"] = f"ValueSet"
-    valueset[f"id"] = id_str
-    valueset[f"text"] = {
-        f"status": f"generated",
-        f"div": f'<div xmlns="http://www.w3.org/1999/xhtml">Placeholder</div>',
+    valueset["resourceType"] = "ValueSet"
+    valueset["id"] = id_str
+    valueset["text"] = {
+        "status": "generated",
+        "div":
+        "<div xmlns=\"http://www.w3.org/1999/xhtml\">Placeholder</div>"
     }
-    valueset[f"url"] = f"{VALUESET_URI}{id_str}"
-    valueset[f"version"] = f"1.4.0"
+    valueset["url"] = f"{config.get_valueset()}{id_str}"
+    valueset["version"] = "1.4.0"
 
-    valueset[f"name"] = id_str.capitalize().replace("_", "")
-    valueset[f"title"] = id_str
-    valueset[f"status"] = f"active"
-    valueset[f"date"] = f"2023-11-20"
-    valueset[f"publisher"] = f"KinD Lab"
-    valueset[f"contact"] = [
-        {
-            f"name": f"KinD Lab",
-            f"telecom": [
-                {f"system": f"url", f"value": f"http://fhir.kindlab.sickkids.ca"}
-            ],
-        }
-    ]
+    valueset["name"] = id_str.capitalize().replace("_", "")
+    valueset["title"] = id_str
+    valueset["status"] = "active"
+    valueset["date"] = str(datetime.today().strftime('%Y-%m-%d'))
+    valueset["publisher"] = f"KinD Lab"
+    valueset["contact"] = [{
+        "name":
+        "KinD Lab",
+        "telecom": [{
+            "system": "url",
+            "value": "http://fhir.kindlab.sickkids.ca"
+        }]
+    }]
 
-    valueset[f"description"] = id
-    valueset[f"compose"] = dict()
+    valueset["description"] = id_str
+    valueset["compose"] = dict()
 
-    valueset[f"compose"][f"include"] = [{f"system": f"{CODESYSTEM_URI}{id_str}"}]
+    valueset["compose"]["include"] = [{
+        "system":
+        f"{config.get_codesystem()}{id_str}"
+    }]
 
     return valueset
+
 
 class Generator(ABC):
     """
@@ -124,9 +133,16 @@ class Generator(ABC):
 
     def __init__(self, config: Config):
         self.config: Config = config
-        # TODO: keep track of code systems created so we only ever create one per option
+        self.code_system_options: dict = {}
         self.code_system: dict = {}
         self.value_set: dict = {}
+
+    def get_code_system(self):
+        return self.code_system
+
+    def get_value_set(self):
+        return self.value_set
+
 
 class QuestionnaireGenerator(Generator):
     """
@@ -141,7 +157,8 @@ class QuestionnaireGenerator(Generator):
         questionnaire = Questionnaire.parse_raw(questionnaire_dict)
         return questionnaire
 
-    def parse_reproschema_items(self, reproschema_content: OrderedDict):
+    def parse_reproschema_items(self, reproschema_items: OrderedDict,
+                                reproschema_content: OrderedDict):
         """
         Helper function to parse reproschema items into fhir items
 
@@ -159,7 +176,127 @@ class QuestionnaireGenerator(Generator):
             ...
         }
         """
-        raise NotImplementedError()
+        # there are a few possibilities for responses presented by reproschema:
+        # 1. responseOptions is a string, which is a reference to a file with the responses
+        # 2. responseOptions is a dict, which is a list of options
+
+        items = []
+
+        for item_path, item_json in reproschema_items.items():
+            curr_item = dict()
+
+            var_name = item_path.replace("items/", "")
+            curr_item["linkId"] = var_name
+
+            item_type = "string"
+            if "inputType" in item_json["ui"]:
+                if item_json["ui"]["inputType"] == "radio":
+                    item_type = f"choice"
+                elif item_json["ui"]["inputType"] in ("number", "xsd:int"):
+                    item_type = "integer"
+                else:
+                    item_type = "string"
+
+            curr_item["type"] = item_type
+
+            if "question" in item_json and isinstance(item_json["question"],
+                                                       dict):
+                curr_item["text"] = str(
+                    item_json["question"][self.config.get_language()])
+            elif f"prefLabel" in item_json:
+                curr_item["text"] = str(item_json["prefLabel"])
+            else:
+                curr_item[f"text"] = curr_item[f"linkId"]
+
+            # now we prepare the ValueSet used for the response options
+            # prepare the valueset
+            value_set = None
+            code_system = None
+            # id must be 64 characters
+            id_str: str = var_name
+            id_str = id_str.replace("_", "-")
+            id_str = id_str.lower()
+
+            if "responseOptions" in item_json:
+                # FOR VERSION 1.0.0
+                if isinstance(item_json["responseOptions"], str):
+                    # resolve the path relative to the items folder to load in the dict
+                    codesystem_id_for_valueset = id_str
+                    options_path = Path(
+                        item_path).parent / item_json['responseOptions']
+                    options_path = options_path.resolve()
+
+                    options_json = reproschema_content[(
+                        str(options_path)).split("/")[-1]]
+
+                    # create a code system for this
+                    (code_system,
+                     options) = generate_code_system(options_json, id_str,
+                                                     self.config)
+                    if tuple(options) not in self.code_system_options:
+                        self.code_system_options[tuple(options)] = id_str
+                        self.code_system[id_str] = code_system
+                    else:
+                        codesystem_id_for_valueset = self.code_system_options[
+                            tuple(options)]
+                        curr_item["linkId"] = var_name
+                        curr_item["type"] = "string"
+                        curr_item["text"] = str(
+                            item_json["question"][self.config.get_language()])
+
+                    # VERSION 0.0.1
+                elif isinstance(item_json["responseOptions"], dict):
+                    # we wish to avoid making identical codesystems. we assume the codesystem
+                    # we are making doesnt exist yet. Later when we find out it already exists,
+                    # we overright the codesystem_id_for_valueset to the codesystem that matches
+                    codesystem_id_for_valueset = id_str
+                    if "choices" not in item_json["responseOptions"]:
+                        curr_item["linkId"] = var_name
+                        if "valueType" in item_json[
+                                "responseOptions"] and "int" in item_json[
+                                    "responseOptions"]["valueType"]:
+                            curr_item[f"type"] = f"integer"
+                        elif "valueType" in item_json[
+                                "responseOptions"] and "date" in item_json[
+                                    "responseOptions"]["valueType"]:
+                            curr_item["type"] = "date"
+                        else:
+                            curr_item["type"] = "string"
+                        if "question" not in item_json:
+                            if "prefLabel" in item_json:
+                                curr_item["text"] = str(
+                                    item_json["prefLabel"])
+                            else:
+                                curr_item["text"] = curr_item["linkId"]
+                        else:
+                            curr_item["text"] = str(item_json["question"][
+                                self.config.get_language()])
+                        code_system = None
+                    elif "choices" in item_json["responseOptions"]:
+                        options_json = item_json["responseOptions"]
+                        (code_system, options) = generate_code_system(
+                            options_json, id_str, self.config)
+                        if tuple(options) not in self.code_system_options:
+                            self.code_system_options[tuple(options)] = id_str
+                            self.code_system[id_str] = code_system
+                        else:
+                            codesystem_id_for_valueset = self.code_system_options[
+                                tuple(options)]
+                        curr_item["linkId"] = var_name
+                        curr_item["type"] = f"string"
+                        curr_item["text"] = str(
+                            item_json["question"][self.config.get_language()])
+            if code_system is not None:
+                value_set = generate_value_set(codesystem_id_for_valueset,
+                                               self.config)
+
+                if codesystem_id_for_valueset not in self.value_set:
+                    self.value_set[codesystem_id_for_valueset] = value_set
+                curr_item["answerValueSet"] = value_set["url"]
+                curr_item["type"] = "choice"
+
+            items.append(curr_item)
+        return items
 
     def convert_to_fhir(self, reproschema_content: dict):
         """
@@ -171,134 +308,76 @@ class QuestionnaireGenerator(Generator):
         fhir_questionnaire = dict()
 
         # reference to the main schema file
-        schema_name = [name for name in reproschema_content.keys() if name.endswith("_schema")][0]
+        schema_name = [
+            name for name in list(reproschema_content.keys())
+            if name.endswith("_schema")
+        ][0]
         reproschema_schema = reproschema_content[schema_name]
-        reproschema_id = reproschema_schema["@id"].replace("_", "")
+
+        reproschema_id = (reproschema_schema["@id"]).replace("_", "")
 
         # create fhir questionnaire
-        fhir_questionnaire[f"resourceType"] = f"Questionnaire"
-        fhir_questionnaire[f"meta"] = {
-            f"profile": [
+        fhir_questionnaire["resourceType"] = "Questionnaire"
+        fhir_questionnaire["meta"] = {
+            "profile": [
                 f"https://voicecollab.ai/fhir/StructureDefinition/vbai-questionnaire"
             ]
         }
-        fhir_questionnaire[f"id"] = reproschema_id
-        fhir_questionnaire[f"url"] = QUESTIONNAIRE_URI + reproschema_schema[f"@id"].replace("_", "")
-        fhir_questionnaire[f"title"] = reproschema_content[f"@id"]
+        fhir_questionnaire["id"] = reproschema_id
+        fhir_questionnaire[
+            "url"] = self.config.QUESTIONNAIRE_URI + reproschema_schema[
+                "@id"].replace("_", "")
+        fhir_questionnaire["title"] = reproschema_schema["@id"]
 
-        fhir_questionnaire[f"text"] = {
-            f"status": f"generated",
-            f"div": f'<div xmlns="http://www.w3.org/1999/xhtml">Placeholder</div>',
+        fhir_questionnaire["text"] = {
+            "status": "generated",
+            "div":
+            '<div xmlns="http://www.w3.org/1999/xhtml">Placeholder</div>',
         }
-        fhir_questionnaire[f"version"] = f"1.4.0"
-        fhir_questionnaire[f"status"] = f"active"
-        fhir_questionnaire[f"date"] = f"2023-11-20T11:33:15-05:00"
+        fhir_questionnaire[f"version"] = "1.4.0"
+        fhir_questionnaire[f"status"] = "active"
+        fhir_questionnaire[f"date"] = (datetime.now(timezone.utc)).strftime('%Y-%m-%d %H:%M:%S.%f')
         fhir_questionnaire[f"publisher"] = f"KinD Lab"
-        fhir_questionnaire[f"contact"] = [
-            {
-                f"name": f"KinD Lab",
-                f"telecom": [
-                    {f"system": f"url", f"value": f"http://fhir.kindlab.sickkids.ca"}
-                ],
-            }
-        ]
+        fhir_questionnaire[f"contact"] = [{
+            "name":
+            "KinD Lab",
+            "telecom": [{
+                "system": "url",
+                "value": "http://fhir.kindlab.sickkids.ca"
+            }],
+        }]
 
-        fhir_questionnaire[f"item"] = []
+        fhir_questionnaire["item"] = []
 
         group = dict()
-        group[f"linkId"] = f"T1"
+        group["linkId"] = "T1"
 
-        if f"preamble" in reproschema_schema.keys():
-            if isinstance(reproschema_schema[f"preamble"], dict):
-                group[f"text"] = reproschema_schema[f"preamble"]["en"]
-            elif isinstance(reproschema_schema[f"preamble"], str):
-                group[f"text"] = reproschema_schema[f"preamble"]
+        if "preamble" in reproschema_schema.keys():
+            if isinstance(reproschema_schema["preamble"], dict):
+                group["text"] = reproschema_schema["preamble"][
+                    self.config.get_language()]
+            elif isinstance(reproschema_schema["preamble"], str):
+                group["text"] = reproschema_schema["preamble"]
         else:
-            group[f"text"] = ""
+            group["text"] = " "
 
-        group[f"type"] = f"group"
+        group["type"] = "group"
 
-        # create a pointer to the reproschema_items jsons
+        # create a pointer to the reproschema_items jsons and match the question
+        reproschema_items = OrderedDict([(i, value)
+                                         for (i, value) in reproschema_content.items()
+                                         if i.startswith("items/")])
+
+        question_order = [("items/" + sub.replace("items/", ""))
+                          for sub in reproschema_schema[f"ui"][f"order"]]
+
         reproschema_items = OrderedDict(
-            [
-                (i, reproschema_content[i])
-                for i in reproschema_content.keys()
-                if i.startswith("items/")
-            ]
-        )
+            (key, reproschema_items[key]) for key in question_order)
 
-        items = []
-        for item_path, item_json in reproschema_items.items():
-            curr_item = dict()
+        items = self.parse_reproschema_items(reproschema_items,
+                                             reproschema_content)
 
-            var_name = item_json["@id"]
-            curr_item[f"linkId"] = var_name
-
-            item_type = f"string"
-            if f"inputType" in item_json[f"ui"]:
-                if item_json[f"ui"][f"inputType"] == f"radio":
-                    item_type = f"choice"
-                elif item_json[f"ui"][f"inputType"] in (f"number", f"xsd:int"):
-                    item_type = f"integer"
-                # TODO: else what?
-
-            curr_item[f"type"] = item_type
-
-            # TODO: turn into a get_i18n function, which automatically
-            # uses a self.language arg to pull the relevant language from the dict
-            if f"question" in item_json and isinstance(
-                item_json[f"question"], dict
-            ):
-                curr_item[f"text"] = str(item_json[f"question"][f"en"])
-            else:
-                curr_item[f"text"] = str(item_json[f"prefLabel"])
-
-            # now we prepare the ValueSet used for the response options
-            # there are a few possibilities for responses presented by reproschema:
-            # 1. responseOptions is a string, which is a reference to a file with the responses
-            # 2. responseOptions is a dict, which is a list of options
-
-            # prepare the valueset
-            value_set = None
-            code_system = None
-
-            id_str: str = reproschema_schema["@id"] + item_json["variableName"]
-            id_str = id_str.replace("_", "-")
-            id_str = id_str.lower()
-
-            if f"responseOptions" in item_json:
-                # if responseOptions is a string, it is a reference to a constraint file
-                # TODO: refactor this out into a separate function
-                # once that is done, the argument signature can be reproschema_items only
-                if isinstance(item_json[f"responseOptions"], str):
-                    # resolve the path relative to the items folder to load in the dict
-                    options_path = Path(item_path).parent / item_json[f'responseOptions']
-                    options_path = options_path.resolve()
-                    options_json = reproschema_content[str(options_path)]
-
-                    # create a code system for this
-                    code_system = generate_code_system(options_json, id_str)
-                    if id_str not in self.code_system:
-                        self.code_system[id_str] = code_system
-                elif isinstance(item_json["responseOptions", dict]):
-                    if f"choices" in item_json[f"responseOptions"]:
-                        options_json = item_json[f"responseOptions"]
-                        code_system = generate_code_system(options_json, id_str)
-                        if id_str not in self.code_system:
-                            self.code_system[id_str] = code_system
-
-            if code_system is not None:
-                value_set = generate_value_set(id_str)
-                if id_str not in self.value_set:
-                    self.value_set[id_str] = value_set
-                curr_item["answerValueSet"] = value_set[f"url"]
-            group[f"item"].append(curr_item)
-
-            curr_item[f"linkId"] = var_name
-            curr_item[f"type"] = f"string"
-            curr_item[f"text"] = str(item_json[f"prefLabel"])
-            items.append(curr_item)
         group[f"item"] = items
 
-        fhir_questionnaire[f"item"].append(group)
+        fhir_questionnaire["item"].append(group)
         return fhir_questionnaire
