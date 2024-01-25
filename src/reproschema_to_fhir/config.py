@@ -10,6 +10,7 @@ class Config:
         self.VALUESET_URI = os.getenv('VALUESET_URI')
         self.QUESTIONNAIRE_URI = os.getenv('QUESTIONNAIRE_URI')
         self.LANGUAGE = str(os.getenv('QUESTIONNAIRE_LANGUAGE'))
+        self.MODE = os.getenv('FHIR_QUESTIONNAIRE_MODE')
 
     def get_questionnaire(self):
         return self.QUESTIONNAIRE_URI
@@ -22,3 +23,6 @@ class Config:
 
     def get_language(self):
         return self.LANGUAGE
+    
+    def get_mode(self):
+        return self.MODE

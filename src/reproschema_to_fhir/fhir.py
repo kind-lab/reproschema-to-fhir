@@ -13,54 +13,14 @@ from datetime import datetime, timezone
 from .config import Config
 
 
-def generate_code_system(options_json, id_str: str, config) -> dict:
-    """
-    Helper function to generate a FHIR CodeSystem resource from a reproschema options json.
-    """
-    # default headers for codesystem
-    codeSystem = dict()
-    codeSystem["resourceType"] = "CodeSystem"
-    codeSystem["id"] = id_str
-    codeSystem["text"] = {
-        "status": "generated",
-        "div": '<div xmlns="http://www.w3.org/1999/xhtml">Placeholder</div>',
-    }
-
-    codeSystem["url"] = f"{config.get_codesystem()}{id_str}"
-    codeSystem["version"] = "1.4.0"
-    codeSystem["name"] = id_str.capitalize().replace("_", "")
-    codeSystem["title"] = id_str
-    codeSystem["status"] = "active"
-    codeSystem["date"] = (datetime.now(timezone.utc)).strftime('%Y-%m-%d %H:%M:%S.%f')
-    codeSystem["publisher"] = "KinD Lab"
-    codeSystem["contact"] = [{
-        "name":
-        "KinD Lab",
-        "telecom": [{
-            "system": "url",
-            "value": "http://fhir.kindlab.sickkids.ca"
-        }],
-    }]
-
-    codeSystem["description"] = id_str
-    codeSystem["caseSensitive"] = True
-    codeSystem["content"] = "complete"
-    codeSystem["count"] = len(options_json["choices"])
-    codeSystem["concept"] = []
-
+def add_options(options_json, config):
     options = []
-    # we wish to retrieve each option stored in the reproschema json list. We do this by parsing the list
-    # of jsons and append then contents to an outlined codesystem
-    count = 1
     for j in options_json[f"choices"]:
-
-        codeSystem_option = dict()
         if "schema:name" in j and j["schema:name"] != "":
-            choice = j["schema:name"]
+                choice = j["schema:name"]
         elif "name" in j and j["name"] != "":
             choice = j[f"name"]
-            if config.get_language() in j["name"] and isinstance(["name"],
-                                                                  dict):
+            if config.get_language() in j["name"] and isinstance(["name"], dict):
                 choice = choice[config.get_language()]
             else:
                 pass
@@ -75,17 +35,70 @@ def generate_code_system(options_json, id_str: str, config) -> dict:
             choice = choice[config.get_language()]
 
         choice = str(choice)
-        if "schema:value" in j and j["schema:value"] is not None:
-            codeSystem_option["code"] = j[f"schema:value"]
-        elif "value" in j and j["value"] is not None:
-            codeSystem_option["code"] = j["value"]
-        else:
-            codeSystem_option[f"code"] = count
-        codeSystem_option[f"display"] = str(choice)
+        options.append(choice)
+    return options
 
-        options.append(choice.replace(" ", ""))
-        codeSystem[f"concept"].append(codeSystem_option)
+
+
+def generate_code_system(options_json, id_str: str, config) -> dict:
+    """
+    Helper function to generate a FHIR CodeSystem resource from a reproschema options json.
+    """
+    codeSystem = dict()
+    if config.get_mode() == "ValueSet":
+        # default headers for codesystem
+        
+        codeSystem["resourceType"] = "CodeSystem"
+        codeSystem["id"] = id_str
+        codeSystem["text"] = {
+            "status": "generated",
+            "div": '<div xmlns="http://www.w3.org/1999/xhtml">Placeholder</div>',
+        }
+
+        codeSystem["url"] = f"{config.get_codesystem()}{id_str}"
+        codeSystem["version"] = "1.4.0"
+        codeSystem["name"] = id_str.capitalize().replace("_", "")
+        codeSystem["title"] = id_str
+        codeSystem["status"] = "active"
+        codeSystem["date"] = (datetime.now(timezone.utc)).strftime('%Y-%m-%d %H:%M:%S.%f')
+        codeSystem["publisher"] = "KinD Lab"
+        codeSystem["contact"] = [{
+            "name":
+            "KinD Lab",
+            "telecom": [{
+                "system": "url",
+                "value": "http://fhir.kindlab.sickkids.ca"
+            }],
+        }]
+
+        codeSystem["description"] = id_str
+        codeSystem["caseSensitive"] = True
+        codeSystem["content"] = "complete"
+        codeSystem["count"] = len(options_json["choices"])
+        codeSystem["concept"] = []
+
+    options = add_options(options_json, config)
+    # we wish to retrieve each option stored in the reproschema json list. We do this by parsing the list
+    # of jsons and append then contents to an outlined codesystem
+    count = 1
+
+    for j in options_json[f"choices"]:
+
+        codeSystem_option = dict()
+
+        if config.get_mode() =="ValueSet":
+            if "schema:value" in j and j["schema:value"] is not None:
+                codeSystem_option["code"] = j[f"schema:value"]
+            elif "value" in j and j["value"] is not None:
+                codeSystem_option["code"] = j["value"]
+            else:
+                codeSystem_option[f"code"] = count
+            codeSystem_option[f"display"] = str(options[count-1])
+
+            
+            codeSystem[f"concept"].append(codeSystem_option)
         count += 1
+    
     return (codeSystem, options)
 
 
@@ -124,6 +137,10 @@ def generate_value_set(id_str: str, config) -> dict:
     }]
 
     return valueset
+
+def generate_answerOptions():
+    pass
+
 
 
 class Generator(ABC):
@@ -228,22 +245,29 @@ class QuestionnaireGenerator(Generator):
 
                     options_json = reproschema_content[(
                         str(options_path)).split("/")[-1]]
-
-                    # create a code system for this
-                    (code_system,
-                     options) = generate_code_system(options_json, id_str,
+                    
+                    if(self.config.get_mode() == "ValueSet"):
+                         # create a code system for this
+                        (code_system, options) = generate_code_system(options_json, id_str,
                                                      self.config)
-                    if tuple(options) not in self.code_system_options:
-                        self.code_system_options[tuple(options)] = id_str
-                        self.code_system[id_str] = code_system
-                    else:
-                        codesystem_id_for_valueset = self.code_system_options[
-                            tuple(options)]
+                        if tuple(options) not in self.code_system_options:
+                            self.code_system_options[tuple(options)] = id_str
+                            self.code_system[id_str] = code_system
+                        else:
+                            codesystem_id_for_valueset = self.code_system_options[tuple(options)]
+                            curr_item["linkId"] = var_name
+                            curr_item["type"] = "string"
+                            curr_item["text"] = str(
+                            item_json["question"][self.config.get_language()])
+                    # we don't generate codesystems/valuesets and question is an open answer
+                    elif (self.config.get_mode() == "AnswerOptions"):
+                        options = add_options(options_json, self.config)
                         curr_item["linkId"] = var_name
                         curr_item["type"] = "string"
                         curr_item["text"] = str(
                             item_json["question"][self.config.get_language()])
-
+                        curr_item["answerOption"] = [{ "valueString": option} for option in options ]
+                    
                     # VERSION 0.0.1
                 elif isinstance(item_json["responseOptions"], dict):
                     # we wish to avoid making identical codesystems. we assume the codesystem
@@ -274,24 +298,31 @@ class QuestionnaireGenerator(Generator):
                         code_system = None
                     elif "choices" in item_json["responseOptions"]:
                         options_json = item_json["responseOptions"]
-                        (code_system, options) = generate_code_system(
-                            options_json, id_str, self.config)
-                        if tuple(options) not in self.code_system_options:
-                            self.code_system_options[tuple(options)] = id_str
-                            self.code_system[id_str] = code_system
-                        else:
-                            codesystem_id_for_valueset = self.code_system_options[
-                                tuple(options)]
+                        options = add_options(options_json, self.config)
                         curr_item["linkId"] = var_name
                         curr_item["type"] = f"string"
                         curr_item["text"] = str(
                             item_json["question"][self.config.get_language()])
-            if code_system is not None:
+                        #print(options_json)
+                        if self.config.get_mode() == "ValueSet":
+                            (code_system, options) = generate_code_system(
+                            options_json, id_str, self.config)
+                            if tuple(options) not in self.code_system_options:
+                                self.code_system_options[tuple(options)] = id_str
+                                self.code_system[id_str] = code_system
+                            else:
+                                codesystem_id_for_valueset = self.code_system_options[
+                                    tuple(options)]
+                        elif self.config.get_mode() == "AnswerOptions":
+                            curr_item["answerOption"] = [{"valueString": option} for option in options]
+                        
+            if self.config.get_mode() == "ValueSet" and code_system is not None:
                 value_set = generate_value_set(codesystem_id_for_valueset,
                                                self.config)
 
                 if codesystem_id_for_valueset not in self.value_set:
                     self.value_set[codesystem_id_for_valueset] = value_set
+                #print(value_set)
                 curr_item["answerValueSet"] = value_set["url"]
                 curr_item["type"] = "choice"
 
@@ -376,8 +407,9 @@ class QuestionnaireGenerator(Generator):
 
         items = self.parse_reproschema_items(reproschema_items,
                                              reproschema_content)
-
+     
         group[f"item"] = items
+        
 
         fhir_questionnaire["item"].append(group)
         return fhir_questionnaire
