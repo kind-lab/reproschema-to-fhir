@@ -87,10 +87,11 @@ def generate_code_system(options_json, id_str: str, config) -> dict:
         codeSystem_option = dict()
 
         if config.get_mode() =="ValueSet":
+            # we parse to string and lsstrip as fhir codes don't allow leading whitespaces 
             if "schema:value" in j and j["schema:value"] is not None:
-                codeSystem_option["code"] = j[f"schema:value"]
+                codeSystem_option["code"] = str(j[f"schema:value"]).lstrip()
             elif "value" in j and j["value"] is not None:
-                codeSystem_option["code"] = j["value"]
+                codeSystem_option["code"] = str(j["value"]).lstrip()
             else:
                 codeSystem_option[f"code"] = count
             codeSystem_option[f"display"] = str(options[count-1])
@@ -274,7 +275,7 @@ class QuestionnaireGenerator(Generator):
                     # we are making doesnt exist yet. Later when we find out it already exists,
                     # we overright the codesystem_id_for_valueset to the codesystem that matches
                     codesystem_id_for_valueset = id_str
-                    if "choices" not in item_json["responseOptions"]:
+                    if "choices" not in item_json["responseOptions"] or item_json["responseOptions"]["choices"] is None :
                         curr_item["linkId"] = var_name
                         if "valueType" in item_json[
                                 "responseOptions"] and "int" in item_json[

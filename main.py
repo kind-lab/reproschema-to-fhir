@@ -50,9 +50,9 @@ if __name__ == '__main__':
     if (f"schema:version" in reproschema_schema and
             reproschema_schema["schema:version"] not in ("0.0.1", "1.0.0-rc1")
         ) or f"version" in reproschema_schema and reproschema_schema[
-            "version"] not in ("0.0.1", "1.0.0-rc1"):
+            "version"] not in ("0.0.1", "1.0.0-rc1", "1.0.0-rc4"):
         raise ValueError(
-            'Unable to work with reproschema versions other than 0.0.1 or 1.0.0-rc1'
+            'Unable to work with reproschema versions other than 0.0.1, 1.0.0-rc1, and 1.0.0-rc4'
         )
     # before we print to file we wish to validate the jsons using fhir resources
 
@@ -73,19 +73,24 @@ if __name__ == '__main__':
                                                valueset_dict[valueset])
 
     codesystem_dict = questionnaire_generator.get_code_system()
-
+    
     for codesystem in codesystem_dict:
         codesystem_json = construct_fhir_element('CodeSystem',
-                                                 codesystem_dict[codesystem])
+                                                    codesystem_dict[codesystem])
+
 
     # get filename from the reproschema_folder name provided
+ 
     file_name = reproschema_folder.parts[-1]
-    with open(f"{file_name}.json", "w+") as f:
+    p = Path(f"./output/{file_name}/")
+    p.mkdir(parents=True, exist_ok=True)
+
+    with open(f"./output/{file_name}/{file_name}.json", "w+") as f:
         f.write(json.dumps(fhir_questionnaire))
 
     # write out valuesets and codesystems which have been updated in the generator object
-    with open(f"{file_name}-valuesets.json", "w+") as f:
+    with open(f"./output/{file_name}/{file_name}-valuesets.json", "w+") as f:
         f.write(json.dumps(questionnaire_generator.get_value_set()))
 
-    with open(f"{file_name}-codesystems.json", "w+") as f:
+    with open(f"./output/{file_name}/{file_name}-codesystems.json", "w+") as f:
         f.write(json.dumps(questionnaire_generator.get_code_system()))

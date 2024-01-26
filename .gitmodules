@@ -4,3 +4,10 @@
 [submodule "b2ai-redcap2rs"]
 	path = b2ai-redcap2rs
 	url = https://github.com/satra/b2ai-redcap2rs.git
+
+[submodule "b2ai-reproV3.1"]
+	path = b2ai-reproschemav3.1
+	url = https://github.com/sensein/b2ai-redcap2rs.git
+[submodule "b2ai-reproschemav3.1"]
+	path = b2ai-reproschemav3.1
+	url = https://github.com/sensein/b2ai-redcap2rs
