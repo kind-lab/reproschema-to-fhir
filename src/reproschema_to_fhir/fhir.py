@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from .config import Config
 
 
-def add_options(options_json, config):
+def add_options(options_json, config) -> list:
     """
     Helper function to extract all answer choices to a list
     """
@@ -108,6 +108,9 @@ def generate_code_system(options_json, id_str: str, config) -> dict:
 
 
 def generate_value_set(id_str: str, config) -> dict:
+    """
+    Helper function that generates a FHIR valueset for a given question
+    """
     valueset = dict()
     valueset["resourceType"] = "ValueSet"
     valueset["id"] = id_str
@@ -322,8 +325,7 @@ class QuestionnaireGenerator(Generator):
                                 "valueString": option
                             } for option in options]
 
-            if self.config.get_mode(
-            ) == "ValueSet" and code_system is not None:
+            if self.config.get_mode() == "ValueSet" and code_system is not None:
                 value_set = generate_value_set(codesystem_id_for_valueset,
                                                self.config)
 
