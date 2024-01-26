@@ -83,15 +83,27 @@ if __name__ == '__main__':
     # get filename from the reproschema_folder name provided
 
     file_name = reproschema_folder.parts[-1]
-    p = Path(f"./output/{file_name}/")
-    p.mkdir(parents=True, exist_ok=True)
+
+    paths = [f"./output/{file_name}/", f"./output/{file_name}/valuesets/", f"./output/{file_name}/codesystems/"]
+    
+    for folder in paths:
+        os.makedirs(folder)
 
     with open(f"./output/{file_name}/{file_name}.json", "w+") as f:
         f.write(json.dumps(fhir_questionnaire))
 
     # write out valuesets and codesystems which have been updated in the generator object
-    with open(f"./output/{file_name}/{file_name}-valuesets.json", "w+") as f:
-        f.write(json.dumps(questionnaire_generator.get_value_set()))
+ 
+    valueset_count = 1
+    valuesets = [value for (key,value) in questionnaire_generator.get_value_set().items()]
+    for valueset in valuesets:
+        with open(f"./output/{file_name}/valuesets/{file_name}-valueset-{valueset_count}.json", "w+") as f:
+            f.write(json.dumps(valueset))
+        valueset_count += 1
 
-    with open(f"./output/{file_name}/{file_name}-codesystems.json", "w+") as f:
-        f.write(json.dumps(questionnaire_generator.get_code_system()))
+    codesystem_count = 1
+    codesystems = [value for (key,value) in questionnaire_generator.get_code_system().items()]
+    for codesystem in codesystems:
+        with open(f"./output/{file_name}/codesystems/{file_name}-codesystem-{codesystem_count}.json", "w+") as f:
+            f.write(json.dumps(codesystem))
+        codesystem_count += 1
