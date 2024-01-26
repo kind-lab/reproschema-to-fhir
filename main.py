@@ -23,7 +23,9 @@ from reproschema_to_fhir.fhir import QuestionnaireGenerator
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # string param of path to folder containing reproschema files
-    parser.add_argument("reproschema_questionnaire", type=str, help="path to folder containing reproschema files")
+    parser.add_argument("reproschema_questionnaire",
+                        type=str,
+                        help="path to folder containing reproschema files")
     args = parser.parse_args()
     reproschema_folder = Path(args.reproschema_questionnaire)
     if not os.path.isdir(reproschema_folder):
@@ -73,14 +75,13 @@ if __name__ == '__main__':
                                                valueset_dict[valueset])
 
     codesystem_dict = questionnaire_generator.get_code_system()
-    
+
     for codesystem in codesystem_dict:
         codesystem_json = construct_fhir_element('CodeSystem',
-                                                    codesystem_dict[codesystem])
-
+                                                 codesystem_dict[codesystem])
 
     # get filename from the reproschema_folder name provided
- 
+
     file_name = reproschema_folder.parts[-1]
     p = Path(f"./output/{file_name}/")
     p.mkdir(parents=True, exist_ok=True)
