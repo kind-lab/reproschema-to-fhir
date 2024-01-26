@@ -143,10 +143,6 @@ def generate_value_set(id_str: str, config) -> dict:
     return valueset
 
 
-def generate_answerOptions():
-    pass
-
-
 class Generator(ABC):
     """
     Abstract base class for FHIR resource generator.
