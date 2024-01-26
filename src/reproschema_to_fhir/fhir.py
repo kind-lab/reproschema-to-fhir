@@ -65,7 +65,7 @@ def generate_code_system(options_json, id_str: str, config) -> dict:
         codeSystem["title"] = id_str
         codeSystem["status"] = "active"
         codeSystem["date"] = (datetime.now(
-            timezone.utc)).strftime('%Y-%m-%d %H:%M:%S.%f')
+            timezone.utc)).strftime('%Y-%m-%dT%H:%M:%SZ')
         codeSystem["publisher"] = "KinD Lab"
         codeSystem["contact"] = [{
             "name":
@@ -376,7 +376,7 @@ class QuestionnaireGenerator(Generator):
         fhir_questionnaire[f"version"] = "1.4.0"
         fhir_questionnaire[f"status"] = "active"
         fhir_questionnaire[f"date"] = (datetime.now(
-            timezone.utc)).strftime('%Y-%m-%d %H:%M:%S.%f')
+            timezone.utc)).strftime('%Y-%m-%dT%H:%M:%SZ')
         fhir_questionnaire[f"publisher"] = f"KinD Lab"
         fhir_questionnaire[f"contact"] = [{
             "name":
