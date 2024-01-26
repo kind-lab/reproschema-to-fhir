@@ -8,6 +8,7 @@ import argparse
 from collections import OrderedDict
 import json
 import os
+import shutil
 from pathlib import Path
 
 from fhir.resources.questionnaire import Questionnaire
@@ -83,6 +84,10 @@ if __name__ == '__main__':
     # get filename from the reproschema_folder name provided
 
     file_name = reproschema_folder.parts[-1]
+
+    dirpath = Path(f"./output/{file_name}")
+    if dirpath.exists() and dirpath.is_dir():
+        shutil.rmtree(dirpath)
 
     paths = [f"./output/{file_name}/", f"./output/{file_name}/valuesets/", f"./output/{file_name}/codesystems/"]
     
