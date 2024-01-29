@@ -81,6 +81,8 @@ def generate_code_system(options_json, id_str: str, config) -> dict:
         codeSystem["content"] = "complete"
         codeSystem["count"] = len(options_json["choices"])
         codeSystem["concept"] = []
+    else:
+        return codeSystem
 
     options = add_options(options_json, config)
     # we wish to retrieve each option stored in the reproschema json list. We do this by parsing the list
@@ -112,6 +114,9 @@ def generate_value_set(id_str: str, config) -> dict:
     Helper function that generates a FHIR valueset for a given question
     """
     valueset = dict()
+    if config.get_mode() != "ValueSet":
+        return valueset
+
     valueset["resourceType"] = "ValueSet"
     valueset["id"] = id_str
     valueset["text"] = {
