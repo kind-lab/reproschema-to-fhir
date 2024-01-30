@@ -168,7 +168,7 @@ def test_parse_reproschema_items_in_valueset_mode():
     assert expected == fhir_items
 
 
-def test_parse_reproschema_items_in_valueset_mode():
+def test_parse_reproschema_items_in_answeroption_mode():
     codesystem_uri = "https://voicecollab.ai/fhir/CodeSystem/"
     valueset_uri = "https://voicecollab.ai/fhir/ValueSet/"
     questionnaire_uri = "https://voicecollab.ai/fhir/Questionnaire/"
