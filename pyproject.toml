@@ -25,7 +25,8 @@ dependencies = [
     "pip>=20.3.3",
     "reproschema>=0.6.2",
     "fhir.resources>=v6.2.2",
-    "python-dotenv>=1.0.0"
+    "python-dotenv>=1.0.0",
+    "pytest>= 7.1.3"
 
 ]
 

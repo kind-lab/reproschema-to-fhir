@@ -204,7 +204,6 @@ class QuestionnaireGenerator(Generator):
         # there are a few possibilities for responses presented by reproschema:
         # 1. responseOptions is a string, which is a reference to a file with the responses
         # 2. responseOptions is a dict, which is a list of options
-
         items = []
 
         for item_path, item_json in reproschema_items.items():
