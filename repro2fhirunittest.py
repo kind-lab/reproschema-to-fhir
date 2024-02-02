@@ -17,9 +17,9 @@ def test_add_options():
     config.MODE = mode
 
     options = {'valueType': 'xsd:integer', 'choices': [{'name': 'No', 'value': 0}, {'name': 'Yes', 'value': 1}, {'name': 'Not certain', 'value': 2}]}
-    output = add_options(options, config)
-    sol = ["No", "Yes", "Not certain"]
-    assert sol == output
+    actual = add_options(options, config)
+    expected = ["No", "Yes", "Not certain"]
+    assert expected == actual
 
 
 def test_generate_codesystem_in_valueset_mode():

@@ -10,7 +10,6 @@ Transform ReproSchema files into FHIR resources.
 
 Once executed, you should have 3 json files containing the questionnaire resource and their associated valuesets and codesystems in your current directory.
 
-**NOTE**: In order to keep all the code systems and valuesets in their respective files, all the json are appended into a list. If you wish to add them into a FHIR store, you must create an individual json file for each element in the list.
 
 ## Installation
 
