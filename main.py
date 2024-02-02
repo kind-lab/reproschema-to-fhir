@@ -1,7 +1,7 @@
 '''
 script to convert repro scheme to json for fhir questionnaire
 Currently supports reproschema to fhir json in en.
-#example: "python reprotofhirjson.py <reproschema_folder> valueset"
+#example: "python reprotofhirjson.py <reproschema_folder directory>"
 '''
 
 import argparse
