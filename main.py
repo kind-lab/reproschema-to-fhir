@@ -21,7 +21,7 @@ from reproschema.jsonldutils import load_file
 from reproschema_to_fhir.config import Config
 from reproschema_to_fhir.fhir import QuestionnaireGenerator
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
     # string param of path to folder containing reproschema files
     parser.add_argument("reproschema_questionnaire",
@@ -112,3 +112,6 @@ if __name__ == '__main__':
         with open(f"./output/{file_name}/codesystems/{file_name}-codesystem-{codesystem_count}.json", "w+") as f:
             f.write(json.dumps(codesystem))
         codesystem_count += 1
+
+if __name__ == '__main__':
+    main()
