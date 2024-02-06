@@ -6,11 +6,10 @@ Transform ReproSchema files into FHIR resources.
 
 1. Clone this project and create a folder to store the questionnaire you wish to transform from reproschema to FHIR.
 2. Create a .env file in the directory where you cloned this project. Please see .env.example for reference.
-3. Run the main script: `python main.py <path of reproschema folder>`.
+3. Run the main bash script: `./job.sh` to run all questionnaires or to run the script on an individual questionnaire:   `python main.py <path of reproschema folder>`  
 
 Once executed, you should have 3 json files containing the questionnaire resource and their associated valuesets and codesystems in your current directory.
 
-**NOTE**: In order to keep all the code systems and valuesets in their respective files, all the json are appended into a list. If you wish to add them into a FHIR store, you must create an individual json file for each element in the list.
 
 ## Installation
 
