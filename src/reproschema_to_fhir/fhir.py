@@ -372,11 +372,6 @@ class QuestionnaireGenerator(Generator):
                 "@id"].replace("_", "")
         fhir_questionnaire["title"] = reproschema_schema["@id"]
 
-        fhir_questionnaire["text"] = {
-            "status": "generated",
-            "div":
-            '<div xmlns="http://www.w3.org/1999/xhtml">Placeholder</div>',
-        }
         fhir_questionnaire[f"version"] = "1.4.0"
         fhir_questionnaire[f"status"] = "active"
         fhir_questionnaire[f"date"] = (datetime.now(
