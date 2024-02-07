@@ -386,21 +386,12 @@ class QuestionnaireGenerator(Generator):
             }],
         }]
 
-        fhir_questionnaire["item"] = []
-
-        group = dict()
-        group["linkId"] = "T1"
-
         if "preamble" in reproschema_schema.keys():
             if isinstance(reproschema_schema["preamble"], dict):
-                group["text"] = reproschema_schema["preamble"][
+                fhir_questionnaire["text"] = reproschema_schema["preamble"][
                     self.config.get_language()]
             elif isinstance(reproschema_schema["preamble"], str):
-                group["text"] = reproschema_schema["preamble"]
-        else:
-            group["text"] = " "
-
-        group["type"] = "group"
+                fhir_questionnaire["text"] = reproschema_schema["preamble"]
 
         # create a pointer to the reproschema_items jsons and match the question
         reproschema_items = OrderedDict([
@@ -417,7 +408,5 @@ class QuestionnaireGenerator(Generator):
         items = self.parse_reproschema_items(reproschema_items,
                                              reproschema_content)
 
-        group[f"item"] = items
-
-        fhir_questionnaire["item"].append(group)
+        fhir_questionnaire["item"] = items
         return fhir_questionnaire
