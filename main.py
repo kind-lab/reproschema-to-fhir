@@ -21,13 +21,19 @@ from reproschema.jsonldutils import load_file
 from reproschema_to_fhir.config import Config
 from reproschema_to_fhir.fhir import QuestionnaireGenerator
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
     # string param of path to folder containing reproschema files
     parser.add_argument("reproschema_questionnaire",
                         type=str,
                         help="path to folder containing reproschema files")
+    parser.add_argument("--output",
+                        type=str,
+                        default="output",
+                        help="path to folder to output fhir json")
     args = parser.parse_args()
+
+    output_path = Path(args.output)
     reproschema_folder = Path(args.reproschema_questionnaire)
     if not os.path.isdir(reproschema_folder):
         raise FileNotFoundError(
@@ -85,16 +91,20 @@ if __name__ == '__main__':
 
     file_name = reproschema_folder.parts[-1]
 
-    dirpath = Path(f"./output/{file_name}")
+    dirpath = Path(output_path / f"{file_name}")
     if dirpath.exists() and dirpath.is_dir():
         shutil.rmtree(dirpath)
 
-    paths = [f"./output/{file_name}/", f"./output/{file_name}/valuesets/", f"./output/{file_name}/codesystems/"]
+    paths = [
+        output_path / file_name,
+        output_path / f"{file_name}/valuesets/",
+        output_path / f"{file_name}/codesystems/"
+    ]
     
     for folder in paths:
-        os.makedirs(folder)
+        folder.mkdir(parents=True, exist_ok=True)
 
-    with open(f"./output/{file_name}/{file_name}.json", "w+") as f:
+    with open(output_path / f"{file_name}/{file_name}.json", "w+") as f:
         f.write(json.dumps(fhir_questionnaire))
 
     # write out valuesets and codesystems which have been updated in the generator object
@@ -102,13 +112,16 @@ if __name__ == '__main__':
     valueset_count = 1
     valuesets = [value for (key,value) in questionnaire_generator.get_value_set().items()]
     for valueset in valuesets:
-        with open(f"./output/{file_name}/valuesets/{file_name}-valueset-{valueset_count}.json", "w+") as f:
+        with open(output_path / f"{file_name}/valuesets/{file_name}-valueset-{valueset_count}.json", "w+") as f:
             f.write(json.dumps(valueset))
         valueset_count += 1
 
     codesystem_count = 1
     codesystems = [value for (key,value) in questionnaire_generator.get_code_system().items()]
     for codesystem in codesystems:
-        with open(f"./output/{file_name}/codesystems/{file_name}-codesystem-{codesystem_count}.json", "w+") as f:
+        with open(output_path / f"{file_name}/codesystems/{file_name}-codesystem-{codesystem_count}.json", "w+") as f:
             f.write(json.dumps(codesystem))
         codesystem_count += 1
+
+if __name__ == '__main__':
+    main()
