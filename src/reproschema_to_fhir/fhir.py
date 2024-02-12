@@ -222,11 +222,17 @@ class QuestionnaireGenerator(Generator):
                     item_type = "string"
 
             curr_item["type"] = item_type
+            preamble = ""
+            if "preamble" in item_json and isinstance(item_json["preamble"],dict):
+                preamble =  item_json["preamble"][self.config.get_language()]
+            elif "preamble" in item_json and isinstance(item_json["preamble"],str):
+                preamble =  item_json["preamble"]
 
             if "question" in item_json and isinstance(item_json["question"],
                                                       dict):
-                curr_item["text"] = str(
+                curr_item["text"] = preamble + str(
                     item_json["question"][self.config.get_language()])
+                
             elif f"prefLabel" in item_json:
                 curr_item["text"] = str(item_json["prefLabel"])
             else:
@@ -265,13 +271,13 @@ class QuestionnaireGenerator(Generator):
                                 tuple(options)]
                             curr_item["linkId"] = var_name
                             curr_item["type"] = "string"
-                            curr_item["text"] = str(item_json["question"][
+                            curr_item["text"] = preamble + str(item_json["question"][
                                 self.config.get_language()])
                     elif (self.config.get_mode() == "AnswerOptions"):
                         options = add_options(options_json, self.config)
                         curr_item["linkId"] = var_name
                         curr_item["type"] = "string"
-                        curr_item["text"] = str(
+                        curr_item["text"] = preamble + str(
                             item_json["question"][self.config.get_language()])
                         curr_item["answerOption"] = [{
                             "valueString": option
@@ -299,11 +305,11 @@ class QuestionnaireGenerator(Generator):
                             curr_item["type"] = "string"
                         if "question" not in item_json:
                             if "prefLabel" in item_json:
-                                curr_item["text"] = str(item_json["prefLabel"])
+                                curr_item["text"] = preamble + str(item_json["prefLabel"])
                             else:
-                                curr_item["text"] = curr_item["linkId"]
+                                curr_item["text"] = preamble + curr_item["linkId"]
                         else:
-                            curr_item["text"] = str(item_json["question"][
+                            curr_item["text"] =  preamble +str(item_json["question"][
                                 self.config.get_language()])
                         code_system = None
                     elif "choices" in item_json["responseOptions"]:
@@ -311,7 +317,7 @@ class QuestionnaireGenerator(Generator):
                         options = add_options(options_json, self.config)
                         curr_item["linkId"] = var_name
                         curr_item["type"] = "choice"
-                        curr_item["text"] = str(
+                        curr_item["text"] = preamble + str(
                             item_json["question"][self.config.get_language()])
 
                         if self.config.get_mode() == "ValueSet":
