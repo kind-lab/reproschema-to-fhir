@@ -228,6 +228,9 @@ class QuestionnaireGenerator(Generator):
             elif "preamble" in item_json and isinstance(item_json["preamble"],str):
                 preamble =  item_json["preamble"]
 
+            if preamble != "":
+                preamble = f"{preamble}: "
+
             if "question" in item_json and isinstance(item_json["question"],
                                                       dict):
                 curr_item["text"] = preamble + str(
