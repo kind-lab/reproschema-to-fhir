@@ -396,11 +396,8 @@ class QuestionnaireGenerator(Generator):
 
             if "visibility" in item_json:
                 isVis = item_json["visibility"][0]["isVis"]
-                try:
-                    (enable_when, behave ) = add_enable_when(isVis)
-                except:
-                    print(isVis)
-                
+                (enable_when, behave ) = add_enable_when(isVis)
+             
                 curr_item["enableWhen"] = enable_when
                 if behave != "None":
                     curr_item["enableBehavior"] = behave
