@@ -11,6 +11,50 @@ from fhir.resources.codesystem import CodeSystem
 from datetime import datetime, timezone
 
 from .config import Config
+import re as r
+
+def add_enable_when(condition: str):
+    """
+    Parses condition string and returns the enablewhen json
+    """
+    enable_when = []
+    condition_list = []
+
+
+    behave = "None"
+    condition = condition.replace("\n", "")
+    if "||" in condition or " or" in condition:
+         behave = "any"
+    elif "&&" in condition or " and " in condition:
+         behave = "all"
+    
+    # placeholder character since || is a special character in regex
+    condition = condition.replace(" or", " or ")
+    condition = condition.replace("\"", "")
+    condition = condition.replace("||", " or ")
+    condition = condition.replace("! == ", "!=")
+    
+  
+    # '||' is a regex specific character so we replace it with !
+    condition = r.split(r'&&|and | or ', condition)
+
+    for i in condition:
+        (id, operator, ans) = r.split(r'(==|>=|>|<|<=|!=)', i)
+        if operator == "==":
+            operator = "="
+        enable_when.append({
+        "question" : id,
+        "operator" : operator,
+        "answerString" : ans
+    })
+
+    return (enable_when, behave)
+    
+    
+
+    #print(condition)
+    #print(behave)
+    #print("-------------------------------------")
 
 
 def add_options(options_json, config) -> list:
@@ -241,6 +285,8 @@ class QuestionnaireGenerator(Generator):
             else:
                 curr_item[f"text"] = curr_item[f"linkId"]
 
+           
+
             # now we prepare the ValueSet used for the response options
             # prepare the valueset
             value_set = None
@@ -347,6 +393,18 @@ class QuestionnaireGenerator(Generator):
                 curr_item["answerValueSet"] = value_set["url"]
                 curr_item["type"] = "choice"
 
+
+            if "visibility" in item_json:
+                isVis = item_json["visibility"][0]["isVis"]
+                try:
+                    (enable_when, behave ) = add_enable_when(isVis)
+                except:
+                    print(isVis)
+                
+                curr_item["enableWhen"] = enable_when
+                if behave != "None":
+                    curr_item["enableBehavior"] = behave
+                
             items.append(curr_item)
         return items
 
