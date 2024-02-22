@@ -18,9 +18,6 @@ def add_enable_when(condition: str):
     Parses condition string and returns the enablewhen json
     """
     enable_when = []
-    condition_list = []
-
-
     behave = "None"
     condition = condition.replace("\n", "")
     if "||" in condition or " or" in condition:
