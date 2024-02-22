@@ -28,14 +28,15 @@ def add_enable_when(condition: str):
     elif "&&" in condition or " and " in condition:
          behave = "all"
     
-    # placeholder character since || is a special character in regex
+    # we are trying to clean up the condition string so we can apply regex to it
+    # special characters like '||' is a regex specific character so we replace it with ' or '
     condition = condition.replace(" or", " or ")
     condition = condition.replace("\"", "")
     condition = condition.replace("||", " or ")
     condition = condition.replace("! == ", "!=")
     
   
-    # '||' is a regex specific character so we replace it with !
+    
     condition = r.split(r'&&|and | or ', condition)
 
     for i in condition:
