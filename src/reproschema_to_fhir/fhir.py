@@ -47,12 +47,6 @@ def add_enable_when(condition: str):
     })
 
     return (enable_when, behave)
-    
-    
-
-    #print(condition)
-    #print(behave)
-    #print("-------------------------------------")
 
 
 def add_options(options_json, config) -> list:
