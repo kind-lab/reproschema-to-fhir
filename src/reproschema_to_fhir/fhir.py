@@ -37,13 +37,14 @@ def add_enable_when(condition: str):
     condition = r.split(r'&&|and | or ', condition)
 
     for i in condition:
-        (id, operator, ans) = r.split(r'(==|>=|>|<|<=|!=)', i)
+        # the exact order of the regex matters as otherwise '<' will be parsed instead of of '<='
+        (id, operator, ans) = r.split(r'(==|>=|<=|!=|>|<)', i)
         if operator == "==":
             operator = "="
         enable_when.append({
-        "question" : id,
-        "operator" : operator,
-        "answerString" : ans
+        "question" : id.strip(),
+        "operator" : operator.strip(),
+        "answerString" : ans.strip()
     })
 
     return (enable_when, behave)
