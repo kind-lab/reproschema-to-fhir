@@ -41,6 +41,15 @@ def add_enable_when(condition: str):
         (id, operator, ans) = r.split(r'(==|>=|<=|!=|>|<)', i)
         if operator == "==":
             operator = "="
+        # regex to that removes parentheses left over from the redcap csv
+        # id's should now match
+        id = r.sub(r'\([^()]*\)', '', id.strip())
+
+        # edge case where in the redcap csv, visibility is based on which button was checked for that specific question. 
+        # eg. in confounders current_neuro_dx checks if neurological_history is equal to 1-6.  
+        # isVis lists it as neurological_history___{1-6} == 1. We replace the underscores and re-assign question and answerSting
+        if "___" in id:
+            id , ans =  r.split(r'___+', id )
         enable_when.append({
         "question" : id.strip(),
         "operator" : operator.strip(),
