@@ -1,4 +1,3 @@
-# import unittest
 import pytest
 from reproschema_to_fhir.fhir import add_options, add_enable_when, Config, generate_code_system, generate_value_set, QuestionnaireGenerator
 from collections import OrderedDict
