@@ -242,6 +242,16 @@ class QuestionnaireGenerator(Generator):
         # 1. responseOptions is a string, which is a reference to a file with the responses
         # 2. responseOptions is a dict, which is a list of options
         items = []
+        schema_name = [
+            name for name in list(reproschema_content.keys())
+            if name.endswith("_schema")
+        ][0]
+        question_visibility = dict()
+
+        reproschema_schema_properties = reproschema_content[schema_name]["ui"]["addProperties"]
+        for property in reproschema_schema_properties:
+            question_visibility[property["variableName"]] = property["isVis"]
+        
 
         for item_path, item_json in reproschema_items.items():
             curr_item = dict()
@@ -387,14 +397,13 @@ class QuestionnaireGenerator(Generator):
                 curr_item["type"] = "choice"
 
 
-            if "visibility" in item_json:
-                isVis = item_json["visibility"][0]["isVis"]
+            if curr_item["linkId"] in question_visibility and isinstance(question_visibility[curr_item["linkId"]], str):
+                isVis = question_visibility[curr_item["linkId"]]
                 (enable_when, behave ) = add_enable_when(isVis)
-             
                 curr_item["enableWhen"] = enable_when
                 if behave != "None":
                     curr_item["enableBehavior"] = behave
-                
+
             items.append(curr_item)
         return items
 
