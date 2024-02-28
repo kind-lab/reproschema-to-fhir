@@ -58,8 +58,8 @@ def main():
 
     if (f"schema:version" in reproschema_schema and
             reproschema_schema["schema:version"] not in ("0.0.1", "1.0.0-rc1")
-        ) or f"version" in reproschema_schema and reproschema_schema[
-            "version"] not in ("0.0.1", "1.0.0-rc1", "1.0.0-rc4"):
+        ) or f"schemaVersion" in reproschema_schema and reproschema_schema[
+            "schemaVersion"] not in ("0.0.1", "1.0.0-rc1", "1.0.0-rc4"):
         raise ValueError(
             'Unable to work with reproschema versions other than 0.0.1, 1.0.0-rc1, and 1.0.0-rc4'
         )
