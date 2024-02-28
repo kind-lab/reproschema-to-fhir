@@ -273,3 +273,18 @@ def test_add_enable_when_edgecase_with_triple_underscore():
          }], "all")
 
     assert expected == actual
+
+def test_add_enable_when_edgecase_with_parentheses():
+    condition = "item_1(placeholder) == 6 && item_2 <= 2"
+    actual = add_enable_when(condition)
+    expected = ([
+        {"question": "item_1",
+         "operator": "=",
+         "answerString": "6"
+         },
+        {"question": "item_2",
+         "operator": "<=",
+         "answerString": "2"
+         }], "all")
+
+    assert expected == actual
