@@ -213,6 +213,22 @@ def test_parse_reproschema_items_in_answeroption_mode():
     assert expected == fhir_items
 
 
+
+
+def test_add_enable_no_ors_and_no_ands():
+    condition = "item_val == 2"
+    actual = add_enable_when(condition)
+    expected = ([
+        {"question": "item_val",
+         "operator": "=",
+         "answerString": "2"
+         }], "None")
+
+    assert expected == actual
+
+
+
+
 def test_add_enable_when_using_ors():
     condition = "item_1 > 1 || item_2 == 2"
     actual = add_enable_when(condition)
@@ -235,6 +251,21 @@ def test_add_enable_when_using_ands():
         {"question": "item_1",
          "operator": "=",
          "answerString": "1"
+         },
+        {"question": "item_2",
+         "operator": "<=",
+         "answerString": "2"
+         }], "all")
+
+    assert expected == actual
+
+def test_add_enable_when_edgecase_with_triple_underscore():
+    condition = "item_val___6 == 1 && item_2 <= 2"
+    actual = add_enable_when(condition)
+    expected = ([
+        {"question": "item_val",
+         "operator": "=",
+         "answerString": "6"
          },
         {"question": "item_2",
          "operator": "<=",
