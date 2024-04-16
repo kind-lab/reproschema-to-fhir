@@ -3,7 +3,7 @@
 	url = https://github.com/ReproNim/reproschema-library/
 [submodule "b2ai-redcap2rs"]
 	path = b2ai-redcap2rs
-	url = https://github.com/satra/b2ai-redcap2rs.git
+	url = https://github.com/sensein/b2ai-redcap2rs
 
 [submodule "b2ai-reproV3.1"]
 	path = b2ai-reproschemav3.1
@@ -11,3 +11,7 @@
 [submodule "b2ai-reproschemav3.1"]
 	path = b2ai-reproschemav3.1
 	url = https://github.com/sensein/b2ai-redcap2rs
+
+[submodule "b2ai-reproschemaV3.4"]
+	path = b2ai-reproschemaV3.4
+	url = https://github.com/sensein/b2ai-redcap2rs/
