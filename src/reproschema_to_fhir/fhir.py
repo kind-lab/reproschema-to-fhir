@@ -436,11 +436,6 @@ class QuestionnaireGenerator(Generator):
 
         # create fhir questionnaire
         fhir_questionnaire["resourceType"] = "Questionnaire"
-        fhir_questionnaire["meta"] = {
-            "profile": [
-                f"https://voicecollab.ai/fhir/StructureDefinition/vbai-questionnaire"
-            ]
-        }
         fhir_questionnaire["id"] = reproschema_id
         fhir_questionnaire[
             "url"] = self.config.QUESTIONNAIRE_URI + reproschema_schema[
