@@ -438,7 +438,7 @@ class QuestionnaireGenerator(Generator):
         fhir_questionnaire["resourceType"] = "Questionnaire"
         fhir_questionnaire["id"] = reproschema_id
         fhir_questionnaire[
-            "url"] = self.config.QUESTIONNAIRE_URI + reproschema_schema[
+            "url"] = self.config.QUESTIONNAIRE_URI +"Questionnaire-"  + reproschema_schema[
                 "@id"].replace("_", "")
         fhir_questionnaire["title"] = reproschema_schema["@id"]
 
