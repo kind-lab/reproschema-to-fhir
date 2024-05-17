@@ -341,7 +341,7 @@ class QuestionnaireGenerator(Generator):
                         curr_item["text"] = preamble + str(
                             item_json["question"][self.config.get_language()])
                         curr_item["answerOption"] = [{
-                            "valueString": option
+                            "valueString": option.strip()
                         } for option in options]
 
                     # VERSION 0.0.1
@@ -393,7 +393,7 @@ class QuestionnaireGenerator(Generator):
                                     tuple(options)]
                         elif self.config.get_mode() == "AnswerOptions":
                             curr_item["answerOption"] = [{
-                                "valueString": option
+                                "valueString": option.strip()
                             } for option in options]
 
             if self.config.get_mode() == "ValueSet" and code_system is not None:
