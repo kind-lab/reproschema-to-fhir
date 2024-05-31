@@ -15,3 +15,7 @@
 [submodule "b2ai-reproschemaV3.4"]
 	path = b2ai-reproschemaV3.4
 	url = https://github.com/sensein/b2ai-redcap2rs/
+
+[submodule "b2ai-reproschemaV3.5"]
+	path = b2ai-reproschemaV3.5
+	url = https://github.com/Evan8456/b2ai-redcap2rs
