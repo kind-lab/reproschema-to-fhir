@@ -13,22 +13,6 @@ from datetime import datetime, timezone
 from .config import Config
 import re as r
 
-
-def val(questionnaire_name, item, choices):
-    output_path = Path(f"./validate/")
-    output_path.mkdir(parents=True, exist_ok=True)
-    l = list()
-    for choice in choices:
-        question = dict()
-        if choice != choice.strip():
-            question = {"questionnaire": questionnaire_name,
-                        "question": item, "option": choice}
-            l.append(question)
-    if l != []:
-        with open(f"validate/val.json", "a") as f:
-            f.write(json.dumps(l, indent=2))
-
-
 def add_enable_when(condition: str):
     """
     Parses condition string and returns the enablewhen json
