@@ -13,6 +13,22 @@ from datetime import datetime, timezone
 from .config import Config
 import re as r
 
+
+def val(questionnaire_name, item, choices):
+    output_path = Path(f"./validate/")
+    output_path.mkdir(parents=True, exist_ok=True)
+    l = list()
+    for choice in choices:
+        question = dict()
+        if choice != choice.strip():
+            question = {"questionnaire": questionnaire_name,
+                        "question": item, "option": choice}
+            l.append(question)
+    if l != []:
+        with open(f"validate/val.json", "a") as f:
+            f.write(json.dumps(l, indent=2))
+
+
 def add_enable_when(condition: str):
     """
     Parses condition string and returns the enablewhen json
@@ -21,19 +37,17 @@ def add_enable_when(condition: str):
     behave = "None"
     condition = condition.replace("\n", "")
     if "||" in condition or " or" in condition:
-         behave = "any"
+        behave = "any"
     elif "&&" in condition or " and " in condition:
-         behave = "all"
-    
+        behave = "all"
+
     # we are trying to clean up the condition string so we can apply regex to it
     # special characters like '||' is a regex specific character so we replace it with ' or '
     condition = condition.replace(" or", " or ")
     condition = condition.replace("\"", "")
     condition = condition.replace("||", " or ")
     condition = condition.replace("! == ", "!=")
-    
-  
-    
+
     condition = r.split(r'&&|and | or ', condition)
 
     for i in condition:
@@ -45,16 +59,16 @@ def add_enable_when(condition: str):
         # id's should now match
         id = r.sub(r'\([^()]*\)', '', id.strip())
 
-        # edge case where in the redcap csv, visibility is based on which button was checked for that specific question. 
-        # eg. in confounders current_neuro_dx checks if neurological_history is equal to 1-6.  
+        # edge case where in the redcap csv, visibility is based on which button was checked for that specific question.
+        # eg. in confounders current_neuro_dx checks if neurological_history is equal to 1-6.
         # isVis lists it as neurological_history___{1-6} == 1. We replace the underscores and re-assign question and answerSting
         if "___" in id:
-            id , ans =  r.split(r'___+', id )
+            id, ans = r.split(r'___+', id)
         enable_when.append({
-        "question" : id.strip(),
-        "operator" : operator.strip(),
-        "answerString" : ans.strip()
-    })
+            "question": id.strip(),
+            "operator": operator.strip(),
+            "answerString": ans.strip()
+        })
 
     return (enable_when, behave)
 
@@ -260,7 +274,6 @@ class QuestionnaireGenerator(Generator):
         reproschema_schema_properties = reproschema_content[schema_name]["ui"]["addProperties"]
         for property in reproschema_schema_properties:
             question_visibility[property["variableName"]] = property["isVis"]
-        
 
         for item_path, item_json in reproschema_items.items():
             curr_item = dict()
@@ -274,15 +287,17 @@ class QuestionnaireGenerator(Generator):
                     item_type = f"choice"
                 elif item_json["ui"]["inputType"] in ("number", "xsd:int"):
                     item_type = "integer"
+                elif item_json["ui"]["inputType"] in ("audioImageRecord", "audioRecord"):
+                    item_type = f"attachment"
                 else:
                     item_type = "string"
 
             curr_item["type"] = item_type
             preamble = ""
-            if "preamble" in item_json and isinstance(item_json["preamble"],dict):
-                preamble =  item_json["preamble"][self.config.get_language()]
-            elif "preamble" in item_json and isinstance(item_json["preamble"],str):
-                preamble =  item_json["preamble"]
+            if "preamble" in item_json and isinstance(item_json["preamble"], dict):
+                preamble = item_json["preamble"][self.config.get_language()]
+            elif "preamble" in item_json and isinstance(item_json["preamble"], str):
+                preamble = item_json["preamble"]
 
             if preamble != "":
                 preamble = f"{preamble}: "
@@ -291,13 +306,11 @@ class QuestionnaireGenerator(Generator):
                                                       dict):
                 curr_item["text"] = preamble + str(
                     item_json["question"][self.config.get_language()])
-                
+
             elif f"prefLabel" in item_json:
                 curr_item["text"] = str(item_json["prefLabel"])
             else:
                 curr_item[f"text"] = curr_item[f"linkId"]
-
-           
 
             # now we prepare the ValueSet used for the response options
             # prepare the valueset
@@ -343,6 +356,7 @@ class QuestionnaireGenerator(Generator):
                         curr_item["answerOption"] = [{
                             "valueString": option.strip()
                         } for option in options]
+                        # val(schema_name, var_name, options)
 
                     # VERSION 0.0.1
                 elif isinstance(item_json["responseOptions"], dict):
@@ -362,15 +376,21 @@ class QuestionnaireGenerator(Generator):
                                 "responseOptions"] and "date" in item_json[
                                     "responseOptions"]["valueType"]:
                             curr_item["type"] = "date"
+                        elif "valueType" in item_json[
+                                "responseOptions"] and "audio" in item_json[
+                                    "responseOptions"]["valueType"].casefold():
+                            curr_item["type"] = "attachment"
                         else:
                             curr_item["type"] = "string"
                         if "question" not in item_json:
                             if "prefLabel" in item_json:
-                                curr_item["text"] = preamble + str(item_json["prefLabel"])
+                                curr_item["text"] = preamble + \
+                                    str(item_json["prefLabel"])
                             else:
-                                curr_item["text"] = preamble + curr_item["linkId"]
+                                curr_item["text"] = preamble + \
+                                    curr_item["linkId"]
                         else:
-                            curr_item["text"] =  preamble +str(item_json["question"][
+                            curr_item["text"] = preamble + str(item_json["question"][
                                 self.config.get_language()])
                         code_system = None
                     elif "choices" in item_json["responseOptions"]:
@@ -395,6 +415,7 @@ class QuestionnaireGenerator(Generator):
                             curr_item["answerOption"] = [{
                                 "valueString": option.strip()
                             } for option in options]
+                            # val(schema_name, id_str, options)
 
             if self.config.get_mode() == "ValueSet" and code_system is not None:
                 value_set = generate_value_set(codesystem_id_for_valueset,
@@ -405,10 +426,9 @@ class QuestionnaireGenerator(Generator):
                 curr_item["answerValueSet"] = value_set["url"]
                 curr_item["type"] = "choice"
 
-
             if curr_item["linkId"] in question_visibility and isinstance(question_visibility[curr_item["linkId"]], str):
                 isVis = question_visibility[curr_item["linkId"]]
-                (enable_when, behave ) = add_enable_when(isVis)
+                (enable_when, behave) = add_enable_when(isVis)
                 curr_item["enableWhen"] = enable_when
                 if behave != "None":
                     curr_item["enableBehavior"] = behave
@@ -438,7 +458,7 @@ class QuestionnaireGenerator(Generator):
         fhir_questionnaire["resourceType"] = "Questionnaire"
         fhir_questionnaire["id"] = reproschema_id
         fhir_questionnaire[
-            "url"] = self.config.QUESTIONNAIRE_URI +"Questionnaire-"  + reproschema_schema[
+            "url"] = self.config.QUESTIONNAIRE_URI + "Questionnaire-" + reproschema_schema[
                 "@id"].replace("_", "")
         fhir_questionnaire["title"] = reproschema_schema["@id"]
 
