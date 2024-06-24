@@ -82,8 +82,9 @@ def add_options(options_json, config) -> list:
                 and isinstance(choice, dict)):
             choice = choice[config.get_language()]
 
-        choice = str(choice)
-        options.append(choice)
+        choice = str(choice).strip()
+        if choice != "":
+            options.append(choice)
     return options
 
 
@@ -362,7 +363,7 @@ class QuestionnaireGenerator(Generator):
                             curr_item["type"] = "date"
                         elif "valueType" in item_json[
                                 "responseOptions"] and "audio" in item_json[
-                                    "responseOptions"]["valueType"].casefold():
+                                    "responseOptions"]["valueType"]:
                             curr_item["type"] = "attachment"
                         else:
                             curr_item["type"] = "string"
@@ -436,15 +437,15 @@ class QuestionnaireGenerator(Generator):
         ][0]
         reproschema_schema = reproschema_content[schema_name]
 
-        reproschema_id = (reproschema_schema["@id"]).replace("_", "")
+        reproschema_id = (reproschema_schema["id"]).replace("_", "")
 
         # create fhir questionnaire
         fhir_questionnaire["resourceType"] = "Questionnaire"
         fhir_questionnaire["id"] = reproschema_id
         fhir_questionnaire[
             "url"] = self.config.QUESTIONNAIRE_URI + "Questionnaire-" + reproschema_schema[
-                "@id"].replace("_", "")
-        fhir_questionnaire["title"] = reproschema_schema["@id"]
+                "id"].replace("_", "")
+        fhir_questionnaire["title"] = reproschema_schema["id"]
 
         fhir_questionnaire[f"version"] = "1.4.0"
         fhir_questionnaire[f"status"] = "active"
@@ -460,12 +461,6 @@ class QuestionnaireGenerator(Generator):
             }],
         }]
 
-        if "preamble" in reproschema_schema.keys():
-            if isinstance(reproschema_schema["preamble"], dict):
-                fhir_questionnaire["text"] = reproschema_schema["preamble"][
-                    self.config.get_language()]
-            elif isinstance(reproschema_schema["preamble"], str):
-                fhir_questionnaire["text"] = reproschema_schema["preamble"]
 
         # create a pointer to the reproschema_items jsons and match the question
         reproschema_items = OrderedDict([
