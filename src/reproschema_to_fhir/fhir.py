@@ -336,8 +336,11 @@ class QuestionnaireGenerator(Generator):
                         options = add_options(options_json, self.config)
                         curr_item["linkId"] = var_name
                         curr_item["type"] = "string"
-                        curr_item["text"] = preamble + str(
-                            item_json["question"][self.config.get_language()])
+                        if "question" in item_json:
+                            curr_item["text"] = preamble + str(
+                                item_json["question"][self.config.get_language()])
+                        else:
+                            curr_item["text"] = preamble
                         curr_item["answerOption"] = [{
                             "valueString": option.strip()
                         } for option in options]
@@ -383,8 +386,11 @@ class QuestionnaireGenerator(Generator):
                         options = add_options(options_json, self.config)
                         curr_item["linkId"] = var_name
                         curr_item["type"] = "choice"
-                        curr_item["text"] = preamble + str(
-                            item_json["question"][self.config.get_language()])
+                        if "question" in item_json:
+                            curr_item["text"] = preamble + str(
+                                item_json["question"][self.config.get_language()])
+                        else:
+                            curr_item["text"] = preamble
 
                         if self.config.get_mode() == "ValueSet":
                             (code_system, options) = generate_code_system(
