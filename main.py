@@ -57,9 +57,9 @@ def main():
     reproschema_schema = reproschema_content[schema_name]
 
     if (f"schema:version" in reproschema_schema and
-            reproschema_schema["schema:version"] not in ("0.0.1", "1.0.0-rc1")
+            reproschema_schema["schema:version"] not in ("0.0.1", "1.0.0-rc1", "1.0.0")
         ) or f"schemaVersion" in reproschema_schema and reproschema_schema[
-            "schemaVersion"] not in ("0.0.1", "1.0.0-rc1", "1.0.0-rc4"):
+            "schemaVersion"] not in ("0.0.1", "1.0.0-rc1", "1.0.0-rc4", "1.0.0"):
         raise ValueError(
             'Unable to work with reproschema versions other than 0.0.1, 1.0.0-rc1, and 1.0.0-rc4'
         )
@@ -71,9 +71,9 @@ def main():
     questionnaire_generator = QuestionnaireGenerator(config)
     fhir_questionnaire = questionnaire_generator.convert_to_fhir(
         reproschema_content)
-
+    
     questionnaire_json = construct_fhir_element('Questionnaire',
-                                                fhir_questionnaire)
+                                                json.dumps(fhir_questionnaire))
 
     valueset_dict = questionnaire_generator.get_value_set()
 
